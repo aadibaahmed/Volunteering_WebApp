@@ -5,7 +5,7 @@ function homepage() {
 
   return (
     <div>
-      This is a the home page
+      <h1> THIS IS THE START</h1>
     </div>
   )
 }

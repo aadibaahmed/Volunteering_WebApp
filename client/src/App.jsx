@@ -1,12 +1,13 @@
-import { useState } from 'react'
+import { Routes, Route} from 'react-router-dom'
+import HomePage from './home_page/homepage.jsx'
 import './App.css'
 
 function App() {
 
   return (
-    <div>
-      This is a Start
-    </div>
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+    </Routes>
   )
 }
 
