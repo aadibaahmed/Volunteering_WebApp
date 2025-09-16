@@ -15,7 +15,6 @@ function login() {
 
 
     // add the routing to the backend and send the email and password;
-
   }
 
 
@@ -57,7 +56,8 @@ function login() {
           </div>
           <div className = 'LoginPage_Button'>
             <button type = "submit" className= 'login_button'>Login</button>
-            <button className='login_button'>Register</button>
+            <button className='login_button'
+            >Register</button>
           </div>
   
 

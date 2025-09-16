@@ -1,7 +1,9 @@
 html, body {
     height: 100%;
     overflow-x: hidden;
-    background-color: #bed8ff;
+    background-image: url('../../assets/extra_assets/volunteer_background.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
 }
 
 .Login_Page {
@@ -30,12 +32,13 @@ html, body {
 }
 
 .Form_Entries{
+    display: flex;
+    align-items: center;
     padding: 1rem;
     border: black;
     border-radius: 0.5rem;
     font-size: 1rem;
     background-color: transparent;
-
 }
 .Form_Entry{
     color : black;
@@ -49,11 +52,12 @@ html, body {
     border-radius: 0.5rem;
     font-size: .75rem;
     background-color: transparent;
+    margin-left: 20px;
 }
 
 .LoginPage_Button{
     padding: 0.9rem;
-    background-color: #69a3fa;
+    background: linear-gradient(to right, #69a3fa, #4b8ced);
     color: #fff;
     border-radius: 0.5rem;
     display: flex;
@@ -64,7 +68,7 @@ html, body {
 .login_button{
     position: relative;
     padding: 0.7rem;
-    background: linear-gradient(to right, #69a3fa, #bed8ff);
+    background-color: #69a3fa;
     color: #000;
     border: none;
     border-radius: 0.5rem;
@@ -73,4 +77,9 @@ html, body {
     cursor: pointer;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     box-shadow: 0 4px 6px rgba(2, 137, 222, 0.2);
+}
+
+.login_button:hover {
+    background-color: #448bf5;
+
 }
