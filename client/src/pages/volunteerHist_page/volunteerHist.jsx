@@ -1,14 +1,13 @@
 import React from "react";
-import './volunteerHist.css'
-import { useState } from "react";
+import "./volunteerHist.css";
 
-function volunteerHist() {
-
-    return (
-      <div>
-        <h1> Volunteer History</h1>
-      </div>
-    )
-  }
-  
-  export default volunteerHist;
+export default function VolunteerHist() {
+  return (
+    <div className="volunteer-history">
+      <h1>Volunteer History</h1>
+      <ul>
+        <li>hours and event go here</li>
+      </ul>
+    </div>
+  );
+}
