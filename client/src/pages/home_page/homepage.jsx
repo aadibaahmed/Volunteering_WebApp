@@ -1,11 +1,15 @@
-import React from 'react'
 import './homepage.css'
-
+import HeaderBefore from '../../assets/header_before/header_before'
 function homepage() {
 
   return (
     <div>
-      <h1> THIS IS THE START</h1>
+      <HeaderBefore />
+      <main>
+        <div className='main_box'>
+          <h1> this is start</h1>
+        </div>
+      </main>
     </div>
   )
 }

@@ -1,13 +1,13 @@
 html, body {
     height: 100%;
     overflow-x: hidden;
-    background-image: url('../../assets/extra_assets/volunteer_background.jpg');
+    background-image: url('../../assets/extra_assets/volun.jpg');
     background-size: cover;
     background-repeat: no-repeat;
 }
 
 .Login_Page {
-    background-color: #8cb4f16a;
+    background-color: #003e9cc6;
     align-items: center;
     justify-content: center;
     padding: 4rem;
@@ -17,6 +17,7 @@ html, body {
 .welcome {
     padding-top: 2rem;
     padding-bottom: 5rem;
+    color: #fff;
 }
 
 .Login_Container {
@@ -69,7 +70,7 @@ html, body {
     position: relative;
     padding: 0.7rem;
     background-color: #69a3fa;
-    color: #000;
+    color: #ffffff;
     border: none;
     border-radius: 0.5rem;
     font-size: 1rem;

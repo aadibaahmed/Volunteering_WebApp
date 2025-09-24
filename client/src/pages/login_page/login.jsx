@@ -1,6 +1,7 @@
 import React from 'react'
 import './login.css'
 import { useState } from 'react'
+import { Link } from "react-router-dom";
 
 function login() {
 
@@ -56,8 +57,9 @@ function login() {
           </div>
           <div className = 'LoginPage_Button'>
             <button type = "submit" className= 'login_button'>Login</button>
-            <button className='login_button'
-            >Register</button>
+            <Link to = "/register">
+            <button className= 'login_button'> Register </button>
+            </Link>
           </div>
   
 
