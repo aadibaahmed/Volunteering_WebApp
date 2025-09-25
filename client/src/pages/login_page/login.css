@@ -1,9 +1,10 @@
 html, body {
     height: 100%;
     overflow-x: hidden;
-    background-image: url('../../assets/extra_assets/volun.jpg');
+    background-image: url('../../assets/extra_assets/volunnnn.jpg');
     background-size: cover;
     background-repeat: no-repeat;
+    /* background-color: #071e41c6; */
 }
 
 .Login_Page {
