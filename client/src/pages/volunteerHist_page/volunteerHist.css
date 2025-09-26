@@ -1,15 +1,71 @@
-.volunteer-history {
-    padding: 2rem;
-    font-family: Arial, sans-serif;
-  }
-  
-  .volunteer-history h1 {
-    color: #ffdddd;
-    margin-bottom: 1rem;
-  }
-  
-  .volunteer-history ul {
-    list-style-type: disc;
-    padding-left: 1.5rem;
-  }
-  
+.timeline-container {
+  max-width: 700px;
+  margin: 2rem auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+.timeline-title {
+  text-align: left;
+  font-size: 1.8rem;
+  font-weight: bold;
+  margin-bottom: 30px;
+}
+
+.timeline {
+  position: relative;
+  margin-left: 20px;
+  border-left: 2px solid #e0e0e0;
+  padding-left: 30px;
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 30px;
+}
+
+.timeline-dot {
+  position: absolute;
+  left: -11px;
+  top: 5px;
+  width: 16px;
+  height: 16px;
+  background-color: #4caf50;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 0 0 2px #e0e0e0;
+}
+
+.timeline-content {
+  background: #fff;
+  padding: 15px 20px;
+  border-radius: 10px;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+}
+
+.timeline-date {
+  font-size: 0.85rem;
+  color: #999;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.timeline-role {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #333;
+  margin: 0;
+}
+
+.timeline-org {
+  font-size: 0.95rem;
+  color: #666;
+  margin: 4px 0;
+}
+
+.timeline-desc {
+  font-size: 0.9rem;
+  color: #444;
+  margin-top: 8px;
+}
+
