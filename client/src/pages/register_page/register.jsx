@@ -1,6 +1,6 @@
-import React from 'react'
 import './register.css'
 import { useState } from "react";
+import { api } from '../../lib/api';
 
 export default function Register() {
   const [email, setEmail] = useState("");
@@ -8,39 +8,31 @@ export default function Register() {
   const [errors, setErrors] = useState({});
   const [successMsg, setSuccessMsg] = useState("");
 
-  // validate input
   const validate = () => {
     const e = {};
-
-    if (!email.trim()) {
-      e.email = "Email is required.";
-    } else {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        e.email = "Enter a valid email address.";
-      }
-    }
-
-    if (!password.trim()) {
-      e.password = "Password is required.";
-    } else if (password.length < 8 || password.length > 12) {
-      e.password = "Password must be 8–12 characters.";
-    }
-
+    if (!email.trim()) e.email = "Email is required.";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) e.email = "Enter a valid email.";
+    if (!password.trim()) e.password = "Password is required.";
+    else if (password.length < 8 || password.length > 12) e.password = "Password must be 8–12 characters.";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSuccessMsg("");
-
+    setSuccessMsg(""); setErrors({});
     if (!validate()) return;
 
-    // simulation
-    setSuccessMsg("Registration successful!");
-    setEmail("");
-    setPassword("");
+    try {
+      await api('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({ email, password }) // role defaults to volunteer server-side
+      });
+      setSuccessMsg("Registration successful! Please log in.");
+      setEmail(""); setPassword("");
+    } catch (err) {
+      setErrors(prev => ({ ...prev, form: err.message }));
+    }
   };
 
   return (
@@ -48,39 +40,23 @@ export default function Register() {
       <form className="card" onSubmit={handleSubmit} noValidate>
         <h1>User Registration</h1>
 
+        {errors.form && <div className="notice error">{errors.form}</div>}
         {successMsg && <div className="notice ok">{successMsg}</div>}
 
         <div className="inner-box">
-            <label htmlFor="email">Email </label>
-            <input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                maxLength={100}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-            />
-            {errors.email && <div className="error">{errors.email}</div>}
+          <label htmlFor="email">Email </label>
+          <input id="email" type="email" placeholder="you@example.com" maxLength={255}
+                 value={email} onChange={(e) => setEmail(e.target.value)} required />
+          {errors.email && <div className="error">{errors.email}</div>}
 
-            <label htmlFor="password">Password</label>
-            <input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                minLength={8}
-                maxLength={12}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-            />
-            {errors.password && <div className="error">{errors.password}</div>}
+          <label htmlFor="password">Password</label>
+          <input id="password" type="password" placeholder="••••••••" minLength={8} maxLength={12}
+                 value={password} onChange={(e) => setPassword(e.target.value)} required />
+          {errors.password && <div className="error">{errors.password}</div>}
 
-            <button type="submit">Register</button>
+          <button type="submit">Register</button>
         </div>
-        <p className="muted">
-          Already have an account? <a href="/login"> Log in</a>
-        </p>
+        <p className="muted">Already have an account? <a href="/login"> Log in</a></p>
       </form>
     </div>
   );
