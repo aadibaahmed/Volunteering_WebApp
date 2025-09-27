@@ -39,7 +39,9 @@ export default function VolunteerHist() {
     <div className="timeline-container">
       <h1 className="timeline-title">Volunteer History</h1>
       {volunteerHistory.length === 0 ? (
-        <p>No previous volunteer history.</p>
+        <div className="timeline-content no-history">
+          <p>No previous volunteer history.</p>
+        </div>
       ) : (
         <div className="timeline">
           {volunteerHistory.map((item) => (
