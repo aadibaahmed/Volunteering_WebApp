@@ -1,31 +1,36 @@
-.timeline-container {
+/* Outer white box */
+.timeline-container-outer {
+  background: #fff; /* white outer box */
+  padding: 25px;
+  border-radius: 12px;
   max-width: 700px;
   margin: 2rem auto;
-  padding: 20px;
-  font-family: Arial, sans-serif;
-  color: #000; /* default black text */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 .timeline-title {
-  text-align: left;
+  text-align: center; /* center the title always */
   font-size: 1.8rem;
   font-weight: bold;
-  margin-bottom: 30px;
-  color: #000; /* title always black */
+  margin-bottom: 20px;
+  color: #000;
 }
 
+/* Timeline wrapper for items */
 .timeline {
   position: relative;
   margin-left: 20px;
-  border-left: 2px solid #000000;
+  border-left: 2px solid #000;
   padding-left: 30px;
 }
 
+/* Each timeline item */
 .timeline-item {
   position: relative;
   margin-bottom: 30px;
 }
 
+/* Timeline dot */
 .timeline-dot {
   position: absolute;
   left: -11px;
@@ -38,17 +43,24 @@
   box-shadow: 0 0 0 2px #6e6c6c;
 }
 
-.timeline-content {
+/* Inner sage green boxes for content */
+.sage-box {
   background: #C8D5B9; /* sage green */
   padding: 15px 20px;
   border-radius: 10px;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.08);
-  color: #000; /* keep text readable */
+  color: #000;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
+/* Timeline content (text inside sage box) */
+.timeline-content {
+  /* No background here since sage-box handles it */
+}
+
+/* Timeline text styling */
 .timeline-date {
   font-size: 0.85rem;
-  color: #000; /* was #999 */
+  color: #000;
   display: block;
   margin-bottom: 5px;
 }
@@ -56,18 +68,40 @@
 .timeline-role {
   font-size: 1.1rem;
   font-weight: bold;
-  color: #000; /* was #333 */
+  color: #000;
   margin: 0;
 }
 
 .timeline-org {
   font-size: 0.95rem;
-  color: #000; /* was #666 */
+  color: #000;
   margin: 4px 0;
 }
 
 .timeline-desc {
   font-size: 0.9rem;
-  color: #000; /* was #444 */
+  color: #000;
   margin-top: 8px;
+}
+
+/* No history card */
+.no-history {
+  text-align: center;
+  font-style: italic;
+}
+
+/* Toggle button for testing */
+.toggle-btn {
+  margin-bottom: 20px;
+  padding: 8px 16px;
+  background-color: #4caf50;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.toggle-btn:hover {
+  background-color: #45a049;
 }
