@@ -41,6 +41,7 @@ export default function VolunteerHist() {
       {volunteerHistory.length === 0 ? (
         <div className="timeline-content no-history">
           <p>No previous volunteer history.</p>
+          <p>Get Started Today!</p>
         </div>
       ) : (
         <div className="timeline">
