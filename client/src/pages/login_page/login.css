@@ -4,84 +4,105 @@ html, body {
     background-image: url('../../assets/extra_assets/volunnnn.jpg');
     background-size: cover;
     background-repeat: no-repeat;
-    /* background-color: #071e41c6; */
 }
 
 .Login_Page {
-    background-color: #003e9cc6;
-    align-items: center;
-    justify-content: center;
-    padding: 4rem;
-    border-radius: 1rem;
+  background: rgb(182, 53, 53);
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  border-radius: 1rem;
+  box-shadow: 0 14px 40px rgba(0,0,0,0.20);
 }
 
 .welcome {
-    padding-top: 2rem;
-    padding-bottom: 5rem;
-    color: #fff;
+  padding-top: 2rem;
+  padding-bottom: 5rem;
+  color: #fff;
+  font-size: 28px;
+  font-weight: 800;
+  text-align: center;
 }
 
 .Login_Container {
-    background-color: #69a3fa;
-    border: 2px dotted #0b2f65;
-    overflow: hidden;
-    border-radius: 1rem;
+  background: #fff;
+  border: 2px solid #e5e7eb;
+  overflow: hidden;
+  border-radius: 1rem;
+  box-shadow: 0 14px 40px rgba(0,0,0,0.20);
 }
 
 .login-form {
-    padding: 2rem 4rem;
-    background-color: #ffffff;
+  padding: 2rem 4rem;
+  background-color: #fff;
+  border-radius: 1rem;
 }
 
-.Form_Entries{
-    display: flex;
-    align-items: center;
-    padding: 1rem;
-    border: black;
-    border-radius: 0.5rem;
-    font-size: 1rem;
-    background-color: transparent;
-}
-.Form_Entry{
-    color : black;
-    font-weight: bold;
+.Form_Entries {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  background-color: #fafafa;
+  border: 2px solid #e5e7eb;
+  transition: border-color .15s, box-shadow .15s;
 }
 
-.form-input{
-    flex: 1;
-    padding: 1rem;
-    border: none;
-    border-radius: 0.5rem;
-    font-size: .75rem;
-    background-color: transparent;
-    margin-left: 20px;
+.Form_Entries:focus-within {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.363);
 }
 
-.LoginPage_Button{
-    padding: 0.9rem;
-    background: linear-gradient(to right, #69a3fa, #4b8ced);
-    color: #fff;
-    border-radius: 0.5rem;
-    display: flex;
-    gap: 2rem;
-    justify-content: center;
+.Form_Entry {
+  color: #0f172a;
+  font-weight: 700;
+  min-width: 80px;
 }
 
-.login_button{
-    position: relative;
-    padding: 0.7rem;
-    background-color: #69a3fa;
-    color: #ffffff;
-    border: none;
-    border-radius: 0.5rem;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    box-shadow: 0 4px 6px rgba(2, 137, 222, 0.2);
+.form-input {
+  flex: 1;
+  padding: 0.9rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  background: transparent;
+  outline: none;
+}
+
+.LoginPage_Button {
+  margin-top: 1.5rem;
+  padding: 0.9rem;
+  background: linear-gradient(180deg, #ef4444, #dc2626);
+  color: #fff;
+  border-radius: 0.75rem;
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgb(46, 4, 4);
+}
+
+.login_button {
+  position: relative;
+  padding: 0.7rem 1.5rem;
+  background: linear-gradient(180deg, #ef4444, #dc2626);
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.05s, box-shadow 0.15s;
+  box-shadow: 0 4px 14px rgba(220,38,38,.35);
 }
 
 .login_button:hover {
-    background-color: #448bf5;
+  box-shadow: 0 8px 20px rgba(220,38,38,.45);
+  transform: translateY(-1px);
+  background-color: #fda4a4;
+}
 
+.login_button:active {
+  transform: translateY(0);
 }

@@ -20,7 +20,7 @@
   position: absolute;
   top: 2px;
   right: 2px;
-  background: rgb(2, 107, 244);
+  background: rgb(255, 140, 140);
   color: white;
   font-size: 12px;
   font-weight: bold;
@@ -95,7 +95,7 @@
 .unread-dot {
   width: 8px;
   height: 8px;
-  background: #007bff;
+  background: #ff0000;
   border-radius: 50%;
   margin-left: 8px;
 }

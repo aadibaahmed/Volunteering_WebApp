@@ -1,6 +1,6 @@
 :root {
-    --bg-red:#b91c1c; --bg-red-dark:#991b1b;
-    --accent:#ef4444; --accent2:#dc2626;
+    --bg-red:#bd2121; --bg-red-dark:#ac2020c4;
+    --accent:#e94a4a; --accent2:#dc2626;
     --text:#0f172a; --muted:#6b7280; --border:#e5e7eb;
     --shadow:0 14px 40px rgba(0,0,0,.20);
   }

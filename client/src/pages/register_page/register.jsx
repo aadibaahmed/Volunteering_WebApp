@@ -54,7 +54,7 @@ export default function Register() {
                  value={password} onChange={(e) => setPassword(e.target.value)} required />
           {errors.password && <div className="error">{errors.password}</div>}
 
-          <button type="submit">Register</button>
+          <button className = "Register_button" type="submit">Register</button>
         </div>
         <p className="muted">Already have an account? <a href="/login"> Log in</a></p>
       </form>

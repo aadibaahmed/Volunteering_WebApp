@@ -1,25 +1,28 @@
 .auth-wrapper {
-  background-color: #8cb4f16a;
+  background: rgb(182, 53, 53);
   align-items: center;
   justify-content: center;
   padding: 4rem;
   border-radius: 1rem;
+  box-shadow: 0 14px 40px rgba(0,0,0,0.20);
 }
 
 .card {
-  background-color: #69a3fa;
-  border: 2px dotted #0b2f65;
+  background: #fff;
+  border: 2px solid #e5e7eb;
   overflow: hidden;
   border-radius: 1rem;
   padding: 2rem 4rem;
-  background-color: #ffffff;
+  box-shadow: 0 14px 40px rgba(0,0,0,0.20);
 }
 
 h1 {
   text-align: center;
   padding-top: 2rem;
   padding-bottom: 2rem;
-  color: black;
+  color: #0f172a;
+  font-size: 28px;
+  font-weight: 800;
 }
 
 .inner-box {
@@ -30,39 +33,69 @@ h1 {
 }
 
 label {
-  font-weight: bold;
-  color: black;
+  font-weight: 700;
+  color: #0f172a;
 }
 
 input {
   flex: 1;
-  width: 100%;            
-  padding: 1rem;
-  border: 1px solid #ddd;
+  width: 100%;
+  padding: 0.9rem 1rem;
+  border: 2px solid #e5e7eb;
   border-radius: 0.5rem;
-  font-size: .9rem;
-  color: black;          
-  background-color: transparent;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #0f172a;
+  background: #fafafa;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
 }
 
+input:focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.363);
+}
 
 button {
   position: relative;
-  padding: 0.7rem;
-  background-color: #69a3fa;
-  color: #000;
+  padding: 0.7rem 1.5rem;
+  background: linear-gradient(180deg, #ef4444, #dc2626);
+  color: #fff;
   border: none;
   border-radius: 0.5rem;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: 0 4px 6px rgba(2, 137, 222, 0.2);
+  transition: transform 0.05s, box-shadow 0.15s;
+  box-shadow: 0 4px 14px rgba(220,38,38,.35);
   margin-top: 1rem;
+}
+.Register_button{
+  position: relative;
+  padding: 0.7rem 1.5rem;
+  background: linear-gradient(180deg, #ef4444, #dc2626);
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.05s, box-shadow 0.15s;
+  box-shadow: 0 4px 14px rgba(220,38,38,.35);
+}
+.Register_button:hover{
+  box-shadow: 0 8px 20px rgba(220,38,38,.45);
+  transform: translateY(-1px);
+  background-color: #fda4a4;
 }
 
 button:hover {
-  background-color: #448bf5;
+  box-shadow: 0 8px 20px rgba(220,38,38,.45);
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(0);
 }
 
 .error {
@@ -87,4 +120,3 @@ button:hover {
   font-size: 0.9rem;
   color: #6b7280;
 }
-
