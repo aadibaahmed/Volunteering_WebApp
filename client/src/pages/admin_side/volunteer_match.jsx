@@ -149,6 +149,11 @@ export default function VolunteerMatch() {
               value={selectedVolunteer}
               onChange={setSelectedVolunteer}
               placeholder="Choose a volunteer…"
+              menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
+              menuPosition="fixed"
+              styles={{
+                menuPortal: base => ({ ...base, zIndex: 9999 }),
+              }}
             />
           </div>
           <div className="vm-col">

@@ -46,7 +46,9 @@
   
   .rs__control{ border:2px solid var(--border)!important; border-radius:12px!important; min-height:46px!important; }
   .rs__control--is-focused{ border-color:var(--accent)!important; box-shadow:0 0 0 3px rgba(239,68,68,.15)!important; }
-  
+  .rs__menu { border-radius: 12px; overflow: hidden; box-shadow: 0 12px 30px rgba(0,0,0,.18); }
+
+
   .vm-panels{ display:grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap:12px; margin:10px 0 6px; }
   .panel{ border:1.5px solid var(--border); border-radius:14px; padding:12px 14px; background:#fff; }
   .panel-title{ font-weight:900; margin-bottom:8px; }
