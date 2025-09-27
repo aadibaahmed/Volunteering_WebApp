@@ -1,12 +1,3 @@
-html, body {
-  height: 100%;
-  overflow-x: hidden;
-  background-image: url('../../assets/extra_assets/volunteer_background.jpg');
-  background-size: cover;
-  background-repeat: no-repeat;
-  font-family: Calibri, sans-serif;
-}
-
 .auth-wrapper {
   background-color: #8cb4f16a;
   align-items: center;
