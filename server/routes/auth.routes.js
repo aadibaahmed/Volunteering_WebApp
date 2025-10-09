@@ -4,12 +4,16 @@ import jwt from 'jsonwebtoken';
 import { query } from '../database.js';
 
 const router = express.Router();
+const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret';
+
 const sign = (u) =>
-  jwt.sign({ sub: u.id, email: u.email, role: u.role }, process.env.JWT_SECRET, { expiresIn: '2h' });
+  jwt.sign({ sub: u.id, email: u.email, role: u.role }, JWT_SECRET, { expiresIn: '2h' });
 
 router.post('/register', async (req, res) => {
   const { email, password, role = 'volunteer' } = req.body || {};
-  if (!email || !password) return res.status(400).json({ error: 'email & password required' });
+  if (!email || !password)
+    return res.status(400).json({ error: 'email & password required' });
+
   try {
     const exists = await query('SELECT 1 FROM volunteers WHERE email=$1', [email]);
     if (exists.rowCount) return res.status(409).json({ error: 'email already registered' });
@@ -21,6 +25,7 @@ router.post('/register', async (req, res) => {
        RETURNING id, email, role, completed`,
       [email, hash, role]
     );
+
     res.status(201).json(rows[0]);
   } catch (e) {
     console.error('register error:', e);
@@ -30,6 +35,7 @@ router.post('/register', async (req, res) => {
 
 router.post('/login', async (req, res) => {
   const { email, password } = req.body || {};
+
   try {
     const { rows } = await query(
       `SELECT id, email, role, password_hash, completed FROM volunteers WHERE email=$1`,
@@ -50,4 +56,3 @@ router.post('/login', async (req, res) => {
 });
 
 export default router;
-
