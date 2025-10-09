@@ -9,7 +9,6 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [err, setErr] = useState("");
 
-  console.log(password)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErr("");
