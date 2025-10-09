@@ -1,7 +1,10 @@
 import express from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
+
 import { query } from '../database.js';
+dotenv.config()
 
 const router = express.Router();
 const sign = (u) =>
@@ -29,23 +32,23 @@ router.post('/register', async (req, res) => {
 });
 
 router.post('/login', async (req, res) => {
-  const { email, password } = req.body || {};
-  try {
-    const { rows } = await query(
-      `SELECT id, email, role, password_hash, completed FROM volunteers WHERE email=$1`,
-      [email]
-    );
-    const u = rows[0];
-    if (!u) return res.status(401).json({ error: 'invalid credentials' });
-
-    const ok = await bcrypt.compare(password, u.password_hash);
-    if (!ok) return res.status(401).json({ error: 'invalid credentials' });
-
-    const token = sign(u);
-    res.json({ token, user: { id: u.id, email: u.email, role: u.role, completed: u.completed } });
-  } catch (e) {
-    console.error('login error:', e);
-    res.status(500).json({ error: 'login failed' });
+   const { email, password } = req.body || {};
+   try {
+     const { rows } = await query(
+       `SELECT id, email, role, password_hash, completed
+          FROM volunteers WHERE email=$1`,
+       [email]
+     );
+     const u = rows[0];
+     if (!u) return res.status(401).json({ error: 'invalid credentials' });
+     const ok = await bcrypt.compare(password, u.password_hash);
+     if (!ok) return res.status(401).json({ error: 'invalid credentials' });
+ 
+     const token = sign(u);
+     res.json({ token, user: { id: u.id, email: u.email, role: u.role, completed: u.completed } });
+   } catch (err) {
+     console.error('login error:', err);
+     res.status(500).json({ error: 'login failed' });
   }
 });
 
