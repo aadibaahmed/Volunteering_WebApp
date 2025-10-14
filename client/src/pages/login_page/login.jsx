@@ -20,7 +20,7 @@ export default function Login() {
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       if (!data.user.completed) nav('/account');   // force profile completion
-      else nav('/');
+      else nav('/userdash'); // should take user to user dash and manager to manager, etc.
     } catch (e) {
       setErr(e.message);
     }

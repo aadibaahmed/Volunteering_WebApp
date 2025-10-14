@@ -1,9 +1,10 @@
 html, body {
     height: 100%;
+    width: 100%;
     overflow-x: hidden;
-    background-image: url('../../assets/extra_assets/volunnnn.jpg');
+    /* background-image: url('../../assets/extra_assets/volunnnn.jpg');
     background-size: cover;
-    background-repeat: no-repeat;
+    background-repeat: no-repeat; */
 }
 
 .Login_Page {
