@@ -55,7 +55,8 @@
 
 .current-date {
   font-size: 1rem;
-  color: #333;
+  color: #000000;
+  font-weight: bold;
 }
 
 .dashboard-loading {
@@ -114,7 +115,7 @@
 .stat-content h3 {
   margin: 0;
   font-size: 1.1rem;
-  color: #333;
+  color: #000000;
 }
 
 .stat-value {
