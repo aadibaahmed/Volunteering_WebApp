@@ -7,8 +7,9 @@ import Notifications from '../extra_assets/notifications/notifications.jsx'
 
 function HeaderBefore() {
   const header_items = [
+          { title: "Dashboard", link: `/userdash` },
           { title: "Events", link: `/events` },
-          { title: "About Us", link: `/aboutus` }
+          { title: "Account", link: `/account` }
         ]
     return (
     <header className="header">

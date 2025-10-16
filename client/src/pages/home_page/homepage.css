@@ -1,5 +1,112 @@
-/* .main_box{
-    background-color: rgb(255, 60, 60);
-    border-radius: 1.5rem;
-    padding: 10rem;
-} */
+.homepage {
+  min-height: 100vh;
+  font-family:'Times New Roman', Times, serif;
+  display: flex;
+
+  background-image: url('../../assets/extra_assets/volunteeringback.jpg');
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+.homepage-main {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-grow: 1;
+  padding: 3rem 2rem;
+}
+
+.content {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 100%;
+  width: 100%;
+  gap: 2rem;
+  padding: 2rem;
+}
+
+.text-section {
+  flex: 1;
+  min-width: 300px;
+  padding-left: 30rem;
+  padding-right: 30rem;
+}
+
+.text-section h1 {
+  font-size: 3rem;
+  color: #8f2929;
+  margin-bottom: 1rem;
+  padding-bottom: 15rem;
+  border-radius: 2rem;
+}
+
+.text-section p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #ffffff;
+  margin-bottom: 2rem;
+  background-color:#000000ab;
+  padding: 2rem;
+
+}
+
+.buttons {
+  display: flex;
+  gap: 10rem;
+  padding-left: 3rem;
+}
+
+.login-btn,
+.signup-btn {
+  padding: 2rem;
+  width: 200px;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.5rem;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.login-btn {
+  background-color: #ff4d4d;
+  color: white;
+}
+
+.signup-btn {
+  background-color: white;
+  color: #b30000;
+  border: 2px solid #b30000;
+}
+
+.login-btn:hover {
+  background-color: #cc0000;
+}
+
+.signup-btn:hover {
+  background-color: #ffe5e5;
+}
+
+.image-section {
+  flex: 1;
+  min-width: 300px;
+  display: flex;
+  justify-content: center;
+}
+
+.image-placeholder {
+  width: 100%;
+  max-width: 400px;
+  height: 250px;
+  background-color: #ffcccc;
+  border: 2px dashed #b30000;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #660000;
+  font-weight: 500;
+  text-align: center;
+}
