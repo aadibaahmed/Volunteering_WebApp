@@ -10,7 +10,8 @@ function HeaderAfter() {
     const header_items = [
             { title: "Dashboard", link: `/userdash` },
             { title: "Events", link: `/allevents` },
-            { title: "Account", link: `/account` }
+            { title: "Account", link: `/account` },
+            {title: "Volunteer History", link: `/history`}
             ]
             
     return (
