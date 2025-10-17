@@ -1,4 +1,3 @@
-import React from 'react'
 import './header_after.css'
 import { Link } from "react-router-dom";
 import Notifications from '../extra_assets/notifications/notifications.jsx'

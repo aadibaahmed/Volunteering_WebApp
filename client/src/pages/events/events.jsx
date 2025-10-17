@@ -1,8 +1,28 @@
 import React from 'react'
+import { useState } from 'react'
 import Header from '../../assets/header_after/header_after'
+import axios from 'axios'
 import './events.css'
 
 function Events() {
+
+  const [event_name, setEvent_Name] = useState("");
+  const [event_date, setEvent_Date] = useState("");
+
+
+
+  const getEvents = async (events) => {
+    e.preventDefault(); 
+        setErr("");
+        try {
+          const res = await axios.get('/events') 
+          setEvent_Name(res.name)
+          setEvent_Date(res.date)
+
+        } catch (e) {
+          setErr(e.message);
+        }
+  }
   const sample_events = [
     { name: "Event A", date: "10-20-2028" },
     { name: "Event B", date: "10-21-2028" },
