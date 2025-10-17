@@ -18,6 +18,8 @@ import all_events_route from './routes/allevents.routes.js'
 import volunteer_matching_routes from './routes/volunteer_matching.routes.js'
 import volunteer_history_routes from './routes/volunteer_history.routes.js'
 import VolunteerHist from './routes/volunteerHist.routes.js'
+import volunteerHistoryRoutes from "./routes/volunteerHist.routes.js";
+
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -51,6 +53,8 @@ export default app;
 
 // Only start the server when not running tests
 if (process.env.NODE_ENV !== 'test') {
+app.use("/api/volunteer-history", volunteerHistoryRoutes);
+
 
 app.listen(port, () => {
   console.log(`API running on http://localhost:${port}`);
