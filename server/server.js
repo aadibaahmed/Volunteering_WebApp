@@ -34,8 +34,13 @@ app.use('/api/auth', auth_routes);
 app.use('/api/profile', profile_routes);
 
 app.use("/api/events", eventRoutes);
+export default app;
+
+// Only start the server when not running tests
+if (process.env.NODE_ENV !== 'test') {
 
 app.listen(port, () => {
   console.log(`API running on http://localhost:${port}`);
 });
 
+}
