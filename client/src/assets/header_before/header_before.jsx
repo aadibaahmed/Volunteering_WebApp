@@ -14,7 +14,7 @@ const header_items = [
             <div className="container">
                 <nav className="nav">
                     <div className="logo">
-                        <h1 style={{color:"white"}}>Volunteer Org</h1>
+                        <h1 style={{color:"white"}}>ImpactMatch</h1>
                     </div>
                     {/* <div>
                         <Notifications />

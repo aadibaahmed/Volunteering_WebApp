@@ -1,112 +1,147 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+:root {
+  --blue: #6A89A7; 
+  --yellow: #FFBB00; 
+  --dark: #2A3642;
+  --linen: #F4EDE4; 
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background-color: var(--linen);
+}
+
 .homepage {
   min-height: 100vh;
-  font-family:'Times New Roman', Times, serif;
+  width: 100%;
+  font-family: 'Poppins', sans-serif;
+  background-color: var(--linen);
+  color: var(--dark);
   display: flex;
-
-  background-image: url('../../assets/extra_assets/volunteeringback.jpg');
-  background-size: cover;
-  background-repeat: no-repeat;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .homepage-main {
+  flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
-  flex-grow: 1;
-  padding: 3rem 2rem;
-}
-
-.content {
-  display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  max-width: 100%;
-  width: 100%;
-  gap: 2rem;
-  padding: 2rem;
+  gap: 4rem;
+  padding: 8rem 6rem;
+  min-height: calc(100vh - 80px);
+  box-sizing: border-box;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .text-section {
-  flex: 1;
-  min-width: 300px;
-  padding-left: 30rem;
-  padding-right: 30rem;
+  flex: 1 1 450px;
+  max-width: 550px;
+  text-align: center;
+  margin: 0 auto;
 }
 
 .text-section h1 {
   font-size: 3rem;
-  color: #8f2929;
-  margin-bottom: 1rem;
-  padding-bottom: 15rem;
-  border-radius: 2rem;
+  font-weight: 800;
+  color: var(--dark);
+  margin-bottom: 1.5rem;
+  line-height: 1.3;
 }
 
 .text-section p {
   font-size: 1.1rem;
-  line-height: 1.6;
-  color: #ffffff;
-  margin-bottom: 2rem;
-  background-color:#000000ab;
-  padding: 2rem;
-
+  line-height: 1.8;
+  color: #39424e;
+  margin-bottom: 2.5rem;
 }
 
 .buttons {
   display: flex;
-  gap: 10rem;
-  padding-left: 3rem;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
 }
 
-.login-btn,
-.signup-btn {
-  padding: 2rem;
-  width: 200px;
-  border: none;
+.cta-btn,
+.outline-btn {
+  padding: 1rem 2.3rem;
   border-radius: 10px;
-  font-size: 1.5rem;
-  cursor: pointer;
-  font-weight: bold;
-  transition: all 0.3s ease;
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: 0.3s ease;
 }
 
-.login-btn {
-  background-color: #ff4d4d;
-  color: white;
+.cta-btn {
+  background-color: var(--yellow);
+  color: var(--dark);
+  box-shadow: 0 4px 10px rgba(42, 54, 66, 0.15);
 }
 
-.signup-btn {
-  background-color: white;
-  color: #b30000;
-  border: 2px solid #b30000;
+.cta-btn:hover {
+  background-color: #e6a600;
+  color: #fff;
 }
 
-.login-btn:hover {
-  background-color: #cc0000;
+.outline-btn {
+  border: 2px solid var(--blue);
+  color: var(--blue);
 }
 
-.signup-btn:hover {
-  background-color: #ffe5e5;
+.outline-btn:hover {
+  background-color: var(--blue);
+  color: #fff;
 }
 
 .image-section {
-  flex: 1;
-  min-width: 300px;
+  flex: 1 1 450px;
   display: flex;
   justify-content: center;
+  align-items: center;
 }
 
-.image-placeholder {
+.image-section img {
   width: 100%;
-  max-width: 400px;
-  height: 250px;
-  background-color: #ffcccc;
-  border: 2px dashed #b30000;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #660000;
-  font-weight: 500;
-  text-align: center;
+  max-width: 500px;
+  height: auto;
+  border-radius: 16px;
+  object-fit: cover;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  animation: float 5s ease-in-out infinite;
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+@media (max-width: 1024px) {
+  .homepage-main {
+    flex-direction: column;
+    padding: 5rem 2rem;
+    text-align: center;
+  }
+
+  .text-section {
+    max-width: 100%;
+  }
+
+  .buttons {
+    justify-content: center;
+  }
+
+  .image-section {
+    margin-top: 3rem;
+  }
+
+  .image-section img {
+    width: 320px;
+  }
 }
