@@ -29,7 +29,7 @@ export default function App() {
       <Route path="/register" element={<Register/>} />
       <Route path="/history" element={<VolunteerHist/>} />
       <Route path="/userdash" element={<VolunteerDashboard/>} />
-      <Route path="/events" element={<Events/>} />
+      <Route path="/allevents" element={<Events/>} />
 
       
       

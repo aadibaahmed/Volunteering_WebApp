@@ -9,7 +9,7 @@ function HeaderAfter() {
 
     const header_items = [
             { title: "Dashboard", link: `/userdash` },
-            { title: "Events", link: `/events` },
+            { title: "Events", link: `/allevents` },
             { title: "Account", link: `/account` }
             ]
             
@@ -33,12 +33,12 @@ function HeaderAfter() {
                             {/* need to add log out where it clears local storage, tmr me problem. */}
                           <Link
                             className="button"
-                            to="/login"
+                            to="/"
                             onClick={(e) => {
                                 e.preventDefault(); // stop link navigation until cleanup
                                 localStorage.removeItem('token');
                                 localStorage.removeItem('user');
-                                navigate('/login');
+                                navigate('/');
                             }}
                             >
                             Logout

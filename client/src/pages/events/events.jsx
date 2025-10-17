@@ -1,33 +1,24 @@
-import React from 'react'
-import { useState } from 'react'
-import Header from '../../assets/header_after/header_after'
-import axios from 'axios'
-import './events.css'
+import React, { useState, useEffect } from 'react';
+import Header from '../../assets/header_after/header_after';
+import './events.css';
+import { api } from '../../lib/api';
 
 function Events() {
+  const [events, setEvents] = useState([]);
+  const [error, setError] = useState("");
 
-  const [event_name, setEvent_Name] = useState("");
-  const [event_date, setEvent_Date] = useState("");
-
-
-
-  const getEvents = async (events) => {
-    e.preventDefault(); 
-        setErr("");
-        try {
-          const res = await axios.get('/events') 
-          setEvent_Name(res.name)
-          setEvent_Date(res.date)
-
-        } catch (e) {
-          setErr(e.message);
-        }
-  }
-  const sample_events = [
-    { name: "Event A", date: "10-20-2028" },
-    { name: "Event B", date: "10-21-2028" },
-    { name: "Event C", date: "10-22-2028" },
-  ]
+  useEffect(() => {
+    const getEvents = async () => {
+      try {
+        const res = await api.get('/allevents');
+        setEvents(res.data);
+      } catch (err) {
+        console.error("Error fetching events:", err);
+        setError("Failed to load events.");
+      }
+    };
+    getEvents();
+  }, []);
 
   const renderTable = (title, items) => (
     <div className="status-section">
@@ -40,6 +31,11 @@ function Events() {
             <thead>
               <tr>
                 <th>Event Name</th>
+                <th>Requirements</th>
+                <th>Location</th>
+                <th>Volunteers</th>
+                <th>Start</th>
+                <th>End</th>
                 <th>Date</th>
               </tr>
             </thead>
@@ -47,7 +43,12 @@ function Events() {
               {items.map((event, index) => (
                 <tr key={index}>
                   <td>{event.name}</td>
-                  <td>{event.date}</td>
+                  <td>{event.requirements}</td>
+                  <td>{event.location}</td>
+                  <td>{event.volunteers}</td>
+                  <td>{new Date(event.start).toLocaleString()}</td>
+                  <td>{new Date(event.end).toLocaleString()}</td>
+                  <td>{new Date(event.date).toLocaleDateString()}</td>
                 </tr>
               ))}
             </tbody>
@@ -55,7 +56,7 @@ function Events() {
         </div>
       )}
     </div>
-  )
+  );
 
   return (
     <div className="events-dashboard-page">
@@ -66,10 +67,15 @@ function Events() {
             THIS IS WHERE ALL THE EVENTS WILL BE LISTED
           </h1>
         </div>
-        {renderTable("Upcoming Events", sample_events)}
+
+        {error ? (
+          <p>{error}</p>
+        ) : (
+          renderTable("Upcoming Events", events)
+        )}
       </div>
     </div>
-  )
+  );
 }
 
-export default Events
+export default Events;
