@@ -1,15 +1,18 @@
 import './header_after.css'
-import { Link } from "react-router-dom";
+import { Link, useNavigate} from "react-router-dom";
 import Notifications from '../extra_assets/notifications/notifications.jsx'
 
 
 
-function HeaderBefore() {
-  const header_items = [
-          { title: "Dashboard", link: `/userdash` },
-          { title: "Events", link: `/events` },
-          { title: "Account", link: `/account` }
-        ]
+function HeaderAfter() {
+    const navigate = useNavigate();
+
+    const header_items = [
+            { title: "Dashboard", link: `/userdash` },
+            { title: "Events", link: `/events` },
+            { title: "Account", link: `/account` }
+            ]
+            
     return (
     <header className="header">
             <div className="container">
@@ -28,9 +31,18 @@ function HeaderBefore() {
                             ))}
 
                             {/* need to add log out where it clears local storage, tmr me problem. */}
-                          <Link className="button" to="/login">
-                              Logout
-                          </Link>
+                          <Link
+                            className="button"
+                            to="/login"
+                            onClick={(e) => {
+                                e.preventDefault(); // stop link navigation until cleanup
+                                localStorage.removeItem('token');
+                                localStorage.removeItem('user');
+                                navigate('/login');
+                            }}
+                            >
+                            Logout
+                            </Link>
                         </>
                     </div>
                 </nav>
@@ -39,4 +51,4 @@ function HeaderBefore() {
   )
 }
 
-export default HeaderBefore
+export default HeaderAfter

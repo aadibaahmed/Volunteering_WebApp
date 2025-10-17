@@ -17,21 +17,23 @@ export default function Register() {
     setErrors(e);
     return Object.keys(e).length === 0;
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSuccessMsg(""); setErrors({});
+    setSuccessMsg("");
+    setErrors({});
     if (!validate()) return;
 
     try {
-      await api('/auth/register', {
-        method: 'POST',
-        body: JSON.stringify({ email, password }) // role defaults to volunteer server-side
-      });
+      await api.post('/auth/register', { email, password });
+
       setSuccessMsg("Registration successful! Please log in.");
-      setEmail(""); setPassword("");
+      setEmail("");
+      setPassword("");
     } catch (err) {
-      setErrors(prev => ({ ...prev, form: err.message }));
+      setErrors(prev => ({
+        ...prev,
+        form: err.response?.data?.error || err.message
+      }));
     }
   };
 

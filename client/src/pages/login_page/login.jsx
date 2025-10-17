@@ -10,21 +10,24 @@ export default function Login() {
   const [err, setErr] = useState("");
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setErr("");
-    try {
-      const data = await api('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ email, password })
-      });
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      if (!data.user.completed) nav('/account');   // force profile completion
-      else nav('/userdash'); // should take user to user dash and manager to manager, etc.
-    } catch (e) {
-      setErr(e.message);
+  e.preventDefault();
+  setErr("");
+
+  try {
+    const { data } = await api.post('/auth/login', { email, password });
+    
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(data.user));
+
+    if (!data.user.completed) {
+      nav('/account');
+    } else {
+      nav('/userdash');
     }
-  };
+  } catch (err) {
+    setErr(err.response?.data?.error || err.message);
+  }
+};
 
   return (
     <div className="Login_Page">

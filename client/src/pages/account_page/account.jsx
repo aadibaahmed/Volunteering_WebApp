@@ -7,6 +7,7 @@ import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 import { api } from '../../lib/api';
 import './account.css';
+import { useNavigate } from 'react-router-dom';
 
 const STATES = ["AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"];
 const SKILLS = ["First Aid","CPR","Teaching","Event Setup","Food Service","Crowd Control","Logistics"].map(s => ({ label:s, value:s }));
@@ -29,6 +30,7 @@ const Schema = z.object({
 });
 
 export default function Account() {
+  const navigate = useNavigate();
   const [dates, setDates] = useState([]);
 
   const { register, handleSubmit, setValue, getValues, reset, formState:{errors} } =
@@ -42,57 +44,62 @@ export default function Account() {
 
   // Load user profile
   useEffect(() => {
-    (async () => {
-      try {
-        const me = await api('/profile/me');
-        if (me) {
-          reset({
-            first_name: me.first_name || '',
-            last_name:  me.last_name || '',
-            address1:   me.address1 || '',
-            address2:   me.address2 || '',
-            city:       me.city || '',
-            state_code: me.state_code || '',
-            zip_code:   me.zip_code || '',
-            preferences:me.preferences || '',
-            skills:     me.skills || [],
-            availability:(me.availability || []).map(d=>d)
-          });
-          setDates((me.availability || []).map(d=>new Date(d)));
-        }
-      } catch {}
-    })();
-  }, [reset]);
+  (async () => {
+    try {
+      const { data: me } = await api.get('/profile/me'); 
+      if (me) {
+        reset({
+          first_name: me.first_name || '',
+          last_name:  me.last_name || '',
+          address1:   me.address1 || '',
+          address2:   me.address2 || '',
+          city:       me.city || '',
+          state_code: me.state_code || '',
+          zip_code:   me.zip_code || '',
+          preferences: me.preferences || '',
+          skills:     me.skills || [],
+          availability: (me.availability || []).map(d => d)
+        });
+        setDates((me.availability || []).map(d => new Date(d)));
+      }
+    } catch (err) {
+      console.error('Error loading profile:', err);
+    }
+  })();
+}, [reset]);
 
-  // Keep availability synced
-  useEffect(() => {
-    const iso = [...new Set(dates.map(toISO))];
-    setValue('availability', iso, { shouldValidate: true });
-  }, [dates, setValue]);
+// Keep availability synced
+useEffect(() => {
+  const iso = [...new Set(dates.map(toISO))];
+  setValue('availability', iso, { shouldValidate: true });
+}, [dates, setValue]);
 
-  const onSubmit = async (data) => {
-    await api('/profile', {
-      method: 'POST',
-      body: JSON.stringify({
-        first_name: data.first_name,
-        last_name: data.last_name,
-        address1: data.address1,
-        address2: data.address2 || null,
-        city: data.city,
-        state_code: data.state_code,
-        zip_code: data.zip_code,
-        preferences: data.preferences || null
-      })
+const onSubmit = async (data) => {
+  try {
+    await api.post('/profile', {   
+      first_name: data.first_name,
+      last_name: data.last_name,
+      address1: data.address1,
+      address2: data.address2 || null,
+      city: data.city,
+      state_code: data.state_code,
+      zip_code: data.zip_code,
+      preferences: data.preferences || null
     });
-    await api('/profile/skills', { method:'PUT', body: JSON.stringify(getValues('skills')) });
-    await api('/profile/availability', { method:'PUT', body: JSON.stringify(getValues('availability')) });
-    await api('/profile/complete', { method: 'POST' });
+
+    await api.put('/profile/skills', getValues('skills'));
+    await api.put('/profile/availability', getValues('availability'));
+    await api.post('/profile/complete'); 
 
     const u = JSON.parse(localStorage.getItem('user') || '{}');
     localStorage.setItem('user', JSON.stringify({ ...u, completed: true }));
     alert('Profile saved!');
-  };
-
+    navigate('/userdash');
+  } catch (err) {
+    console.error('Error saving profile:', err);
+    alert('Failed to save profile: ' + (err.response?.data?.error || err.message));
+  }
+};
   return (
     <div className="account-form">
       <h1>Complete Your Profile</h1>
