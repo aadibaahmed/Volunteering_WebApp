@@ -8,6 +8,8 @@ import jwt from 'jsonwebtoken';
 import { query } from './database.js';
 import { requireAuth } from './middleware/auth.js';
 
+import eventRoutes from "./routes/event.routes.js";
+
 
 import db_health from './DB_health/health.routes.js';
 import profile_routes from './routes/profile.routes.js';
@@ -30,6 +32,8 @@ app.use(db_health);
 app.use('/api/auth', auth_routes); 
 
 app.use('/api/profile', profile_routes);
+
+app.use("/api/events", eventRoutes);
 
 app.listen(port, () => {
   console.log(`API running on http://localhost:${port}`);

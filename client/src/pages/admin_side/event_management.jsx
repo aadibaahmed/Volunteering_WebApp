@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./event_management.css";
+import axios from "axios";
 
 function EventManagement() {
   const [eventName, setEventName] = useState("");
@@ -9,26 +10,49 @@ function EventManagement() {
   const [urgency, setUrgency] = useState("");
   const [eventDate, setEventDate] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
 
-  const allSkills = ["Teaching", "Cooking", "First Aid", "Cleaning", "Organizing"];
+  const allSkills = ["First Aid","CPR","Teaching","Event Setup","Food Service","Crowd Control","Logistics", "Cooking", "Cleaning", "Organizing"];
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     if (!eventName || !eventDescription || !location || !skills.length || !urgency || !eventDate) {
       alert("Please fill out all required fields.");
       return;
     }
-
-    // Frontend only 
-    setSuccessMsg("Event created successfully!");
-    setEventName("");
-    setEventDescription("");
-    setLocation("");
-    setSkills([]);
-    setUrgency("");
-    setEventDate("");
+  
+    const newEvent = {
+      eventName,
+      description: eventDescription,
+      location,
+      skills,
+      urgency,
+      date: eventDate,
+      startTime,
+      endTime,
+    };
+    
+  
+    try {
+      const res = await axios.post("http://localhost:3000/api/events/create", newEvent);
+      setSuccessMsg(res.data.message);
+      console.log("Event created:", res.data.event);
+  
+      // reset form
+      setEventName("");
+      setEventDescription("");
+      setLocation("");
+      setSkills([]);
+      setUrgency("");
+      setEventDate("");
+    } catch (error) {
+      console.error("Error creating event:", error);
+      alert("Failed to create event");
+    }
   };
+  
 
   const handleSkillChange = (e) => {
     const options = Array.from(e.target.selectedOptions, (option) => option.value);
@@ -90,6 +114,21 @@ function EventManagement() {
           onChange={(e) => setEventDate(e.target.value)}
           min="2025-09-09"  //earliest date
           max="2100-12-31" //latest date
+          required
+        />
+        <label>Start Time</label>
+        <input
+          type="time"
+          value={startTime}
+          onChange={(e) => setStartTime(e.target.value)}
+          required
+        />
+
+        <label>End Time</label>
+        <input
+          type="time"
+          value={endTime}
+          onChange={(e) => setEndTime(e.target.value)}
           required
         />
 
