@@ -9,6 +9,8 @@ import VolunteerHist from './pages/volunteerHist_page/volunteerHist.jsx'
 import AboutUs from './pages/about_us/about_us.jsx'
 import VolunteerDashboard from './pages/user_dashboard/user_dashboard.jsx'
 import Events from './pages/events/events.jsx'
+import EventList from './pages/admin_side/event_list.jsx';
+
 import './App.css'
 
 function Protected({ children }) {
@@ -29,11 +31,13 @@ export default function App() {
       <Route path="/userdash" element={<VolunteerDashboard/>} />
       <Route path="/events" element={<Events/>} />
 
+      
+      
 
       {/* ADMINS */}
       <Route path="/eventmanagement" element={<EventManagement />} />
       <Route path="/volunteermatch" element={<VolunteerMatch />} />
-
+      <Route path="/eventlist" element={<EventList />} />
 
     </Routes>
   )

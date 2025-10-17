@@ -1,79 +1,105 @@
+:root {
+  --page: #f5f6fb;
+  --card: #fff;
+  --text: #0f172a;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --accent: #ef4444;
+  --accent2: #dc2626;
+  --shadow: 0 14px 40px rgba(0, 0, 0, 0.12);
+}
+
+/* Main layout */
 .event-wrapper {
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: white; /* clean blue background */
-    padding: 20px;
-   
-  }
-  
-  .event-card {
-    background: rgb(255, 255, 255); /* white box */
-    padding: 60px;
-    border-radius: 12px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
-    width: 100%;
-    max-width: 700px; /* make it a little wider */
-    font-family: Calibri, sans-serif;
-  }
-  
-  h1 {
-    margin-bottom: 20px;
-    text-align: center;
-    color: black;
-  }
-  
-  label {
-    display: block;
-    margin: 12px 0 6px;
-    font-weight: 500;
-    color: black;
-  }
-  
-  input, textarea, select {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    font-size: 1rem;
-    background: white; /* white inputs */
-    color: black; /* black text */
-  }
-  
-  textarea {
-    resize: none;  /* disables drag resize */
-  }
-  
-  
-  select {
-    background: white;
-    color: black;
-  }
-  
-  button {
-    width: 100%;
-    margin-top: 20px;
-    padding: 12px;
-    background: #4f6ded;
-    color: white;
-    font-size: 1rem;
-    font-weight: 600;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-  }
-  
-  button:hover {
-    background: #435bc7;
-  }
-  
-  .notice.ok {
-    background: #ecfdf5;
-    color: #16a34a;
-    border: 1px solid #bbf7d0;
-    padding: 10px;
-    border-radius: 6px;
-    margin-bottom: 12px;
-    text-align: center;
-  }
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: var(--page);
+  padding: 24px;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial;
+  color: var(--text);
+}
+
+/* Event creation box */
+.event-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  padding: 32px 40px;
+  width: min(700px, 94vw);
+}
+
+/* Title */
+.event-card h1 {
+  font-size: 26px;
+  font-weight: 900;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+/* Labels & inputs */
+label {
+  display: block;
+  font-weight: 800;
+  margin: 12px 0 8px;
+}
+
+input,
+textarea,
+select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: #f8fafc;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+  outline: none;
+}
+
+/* Success message */
+.notice.ok {
+  background: #dcfce7;
+  color: #166534;
+  border: 1.5px solid #bbf7d0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+  text-align: center;
+  font-weight: 800;
+}
+
+/* Buttons */
+button {
+  width: 100%;
+  margin-top: 20px;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 900;
+  color: #fff;
+  background: linear-gradient(180deg, var(--accent), var(--accent2));
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(220, 38, 38, 0.18);
+  transition: transform 0.1s ease-in-out;
+}
+
+button:hover {
+  transform: scale(1.02);
+  background: linear-gradient(180deg, var(--accent2), var(--accent));
+}
+
+/* Disable textarea resize */
+textarea {
+  resize: none;
+}
