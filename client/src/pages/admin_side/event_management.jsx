@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "./event_management.css";
-import axios from "axios";
+import { eventApi } from "../../lib/managerApi.js";
 
 function EventManagement() {
   const [eventName, setEventName] = useState("");
@@ -36,10 +36,10 @@ function EventManagement() {
     
   
     try {
-      const res = await axios.post("http://localhost:3000/api/events/create", newEvent);
-      setSuccessMsg(res.data.message);
-      console.log("Event created:", res.data.event);
-  
+      const res = await eventApi.createEvent(newEvent);
+      setSuccessMsg(res.message);
+      console.log("Event created:", res.event);
+
       // reset form
       setEventName("");
       setEventDescription("");
@@ -47,9 +47,11 @@ function EventManagement() {
       setSkills([]);
       setUrgency("");
       setEventDate("");
+      setStartTime("");
+      setEndTime("");
     } catch (error) {
       console.error("Error creating event:", error);
-      alert("Failed to create event");
+      alert("Failed to create event: " + error.message);
     }
   };
   

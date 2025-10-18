@@ -10,6 +10,7 @@ import AboutUs from './pages/about_us/about_us.jsx';
 import VolunteerDashboard from './pages/user_dashboard/user_dashboard.jsx';
 import Events from './pages/events/events.jsx';
 import EventList from './pages/admin_side/event_list.jsx';
+import ManagerDashboard from './pages/admin_side/manager_dashboard.jsx';
 import './App.css';
 
 function Protected({ children, allowedRoles }) {
@@ -67,7 +68,7 @@ export default function App() {
         path="/managerdash"
         element={
           <Protected allowedRoles={['superuser']}>
-            <EventManagement />
+            <ManagerDashboard />
           </Protected>
         }
       />
