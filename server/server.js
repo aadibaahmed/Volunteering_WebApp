@@ -10,9 +10,6 @@ import { requireAuth } from './middleware/auth.js';
 
 import eventRoutes from "./routes/event.routes.js";
 
-import eventRoutes from "./routes/event.routes.js";
-
-
 import db_health from './DB_health/health.routes.js';
 import profile_routes from './routes/profile.routes.js';
 import auth_routes from './routes/auth.routes.js'

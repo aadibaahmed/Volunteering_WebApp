@@ -4,10 +4,10 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-  "dev": "nodemon server.js",
-  "start": "node server.js",
-  "test": "NODE_OPTIONS=--experimental-vm-modules jest --coverage"
-},
+    "dev": "nodemon server.js",
+    "start": "node server.js",
+    "test": "jest --coverage"
+  },
   "author": "",
   "license": "ISC",
   "description": "",
@@ -21,6 +21,7 @@
     "pg": "^8.16.3"
   },
   "devDependencies": {
+    "cross-env": "^10.1.0",
     "jest": "^30.2.0",
     "supertest": "^7.1.4"
   }
