@@ -7,24 +7,41 @@ dotenv.config();
 const router = express.Router();
 
 // Hardcoded users data (no database implementation)
-let users = [
-  {
-    user_id: 1,
-    email: 'admin@volunteer.com',
-    password: '$2b$10$rQZ8K9vJ8K9vJ8K9vJ8K9e', // hashed 'admin123'
-    role: 'superuser',
-    first_name: 'Admin',
-    last_name: 'User'
-  },
-  {
-    user_id: 2,
-    email: 'volunteer@volunteer.com',
-    password: '$2b$10$rQZ8K9vJ8K9vJ8K9vJ8K9e', // hashed 'volunteer123'
-    role: 'user',
-    first_name: 'John',
-    last_name: 'Doe'
+let users = [];
+
+// Initialize users with properly hashed passwords
+async function initializeUsers() {
+  try {
+    const adminHash = await bcrypt.hash('admin123', 10);
+    const volunteerHash = await bcrypt.hash('volunteer123', 10);
+    
+    users = [
+      {
+        user_id: 1,
+        email: 'admin@volunteer.com',
+        password: adminHash,
+        role: 'superuser',
+        first_name: 'Admin',
+        last_name: 'User'
+      },
+      {
+        user_id: 2,
+        email: 'volunteer@volunteer.com',
+        password: volunteerHash,
+        role: 'user',
+        first_name: 'John',
+        last_name: 'Doe'
+      }
+    ];
+    
+    console.log('✅ Users initialized with proper password hashes');
+  } catch (error) {
+    console.error('Error initializing users:', error);
   }
-];
+}
+
+// Initialize users when module loads
+initializeUsers();
 
 const sign = (u) =>
   jwt.sign(
@@ -122,6 +139,24 @@ router.post('/login', async (req, res) => {
     console.error('login error:', err);
     res.status(500).json({ error: 'login failed' });
   }
+});
+
+// Test endpoint to verify login credentials
+router.get('/test-login', (req, res) => {
+  res.json({
+    message: 'Test login credentials:',
+    admin: {
+      email: 'admin@volunteer.com',
+      password: 'admin123',
+      role: 'superuser'
+    },
+    volunteer: {
+      email: 'volunteer@volunteer.com',
+      password: 'volunteer123',
+      role: 'user'
+    },
+    note: 'Use these credentials to login and access the manager dashboard at /managerdash'
+  });
 });
 
 export default router;
