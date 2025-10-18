@@ -10,7 +10,6 @@ import { requireAuth } from './middleware/auth.js';
 
 import eventRoutes from "./routes/event.routes.js";
 
-
 import db_health from './DB_health/health.routes.js';
 import profile_routes from './routes/profile.routes.js';
 import auth_routes from './routes/auth.routes.js'
@@ -41,8 +40,13 @@ app.use('/api', notif_routes);
 
 
 app.use('/api', all_events_route);
+export default app;
+
+// Only start the server when not running tests
+if (process.env.NODE_ENV !== 'test') {
 
 app.listen(port, () => {
   console.log(`API running on http://localhost:${port}`);
 });
 
+}
