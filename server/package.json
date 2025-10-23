@@ -4,17 +4,24 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
+<<<<<<< Updated upstream
   "dev": "nodemon server.js",
   "start": "node server.js",
   "test": "NODE_OPTIONS=--experimental-vm-modules jest --coverage"
 },
+=======
+    "dev": "nodemon server.js",
+    "start": "node server.js",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --coverage"
+  },
+>>>>>>> Stashed changes
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
-    "dotenv": "^17.2.2",
+    "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "nodemon": "^3.1.10",
