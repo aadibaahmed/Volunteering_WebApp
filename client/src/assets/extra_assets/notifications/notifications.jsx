@@ -1,14 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect} from 'react';
 import './Notifications.css';
+import { api } from '../../../lib/api';
 
 const Notifications = () => {
   const [showDropdown, setShowDropdown] = useState(false);
-
+  const [notifications, setNotifications] = useState([]);
   // Sample placeholder volunteering notifications
-  const notifications = [
-    { id: 1, message: "You’ve been matched with a community clean-up event", time: "5 minutes ago", unread: true },
-    { id: 2, message: "Your volunteering hours have been approved", time: "2 hours ago", unread: false },
-  ];
+  // const notifications = [
+  //   { id: 1, message: "You’ve been matched with a community clean-up event", time: "5 minutes ago", unread: true },
+  //   { id: 2, message: "Your volunteering hours have been approved", time: "2 hours ago", unread: false },
+  // ];
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const { data } = await api.get('/notifications');
+        setNotifications(data);
+      } catch (err) {
+        console.error('Error fetching notifications:', err);
+      }
+    };
+    fetchNotifications();
+  }, []);
 
   return (
     <div className="notifications-container">

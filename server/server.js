@@ -10,10 +10,14 @@ import { requireAuth } from './middleware/auth.js';
 
 import eventRoutes from "./routes/event.routes.js";
 
-
 import db_health from './DB_health/health.routes.js';
 import profile_routes from './routes/profile.routes.js';
 import auth_routes from './routes/auth.routes.js'
+import notif_routes from './routes/notifs.routes.js'
+import all_events_route from './routes/allevents.routes.js'
+import volunteer_matching_routes from './routes/volunteer_matching.routes.js'
+import volunteer_history_routes from './routes/volunteer_history.routes.js'
+import VolunteerHist from './routes/volunteerHist.routes.js'
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -34,6 +38,15 @@ app.use('/api/auth', auth_routes);
 app.use('/api/profile', profile_routes);
 
 app.use("/api/events", eventRoutes);
+
+app.use('/api', notif_routes);
+
+app.use('/api', all_events_route);
+
+app.use('/api/volunteer-matching', volunteer_matching_routes);
+
+app.use('/api/volunteer-history', VolunteerHist);
+
 export default app;
 
 // Only start the server when not running tests

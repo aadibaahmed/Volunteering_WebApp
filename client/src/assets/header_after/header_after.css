@@ -1,0 +1,77 @@
+:root {
+  --blue: #6A89A7;
+  --yellow: #FFBB00;
+  --dark: #2A3642;
+  --linen: #F4EDE4;
+}
+
+.header {
+  background-color: var(--dark);
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+}
+
+.container {
+  padding: 1.5rem 3rem;
+}
+
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 64px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--linen);
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 60px;
+}
+
+.nav-links a {
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--linen);
+  transition: color 0.3s, border-bottom 0.3s;
+}
+
+.nav-links a:hover {
+  color: var(--yellow);
+  border-bottom: 2px solid var(--yellow);
+}
+
+.button {
+  padding: 0.75rem 1.25rem;
+  font-weight: 700;
+  background-color: var(--yellow);
+  border-radius: 8px;
+  color: var(--dark);
+  cursor: pointer;
+  border: none;
+  transition: transform 0.15s, box-shadow 0.3s;
+  box-shadow: 0 4px 10px rgba(255, 187, 0, 0.3);
+}
+
+.button:hover {
+  background-color: #e6a600;
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 187, 0, 0.4);
+}
+
+.button:active {
+  transform: translateY(0);
+}

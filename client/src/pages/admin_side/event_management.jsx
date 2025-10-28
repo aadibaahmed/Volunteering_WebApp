@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "./event_management.css";
-import axios from "axios";
+import { eventApi } from "../../lib/managerApi.js";
 
 function EventManagement() {
   const [eventName, setEventName] = useState("");
@@ -39,15 +39,11 @@ function EventManagement() {
     console.log("Sending data:", formData); 
 
     try {
-      const res = await axios.post("http://localhost:3000/api/events", formData);
-      
-      if (res.data) {
-        setSuccessMsg("Event created successfully!");
-        console.log("Event created:", res.data);
-      } else {
-        setSuccessMsg("Event created successfully! (No data returned)");
-      }
-    
+      const res = await eventApi.createEvent(newEvent);
+      setSuccessMsg(res.message);
+      console.log("Event created:", res.event);
+
+      // reset form
       setEventName("");
       setEventDescription("");
       setLocation("");
