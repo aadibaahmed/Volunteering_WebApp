@@ -1,65 +1,45 @@
 import React, { useEffect, useState } from "react";
 import "./volunteerHist.css";
+import Header from '../../assets/header_after/header_after';
+
 
 export default function VolunteerHist() {
   const [volunteerHistory, setVolunteerHistory] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  // Hardcoded sample data for testing
-  const sampleData = [
-    {
-      id: 1,
-      start: "2025-09-01T10:00:00",
-      end: "2025-09-01T14:00:00",
-      role: "Food Drive Volunteer",
-      organization: "Helping Hands",
-      description: "Packed and distributed food boxes for families in need.",
-    },
-    {
-      id: 2,
-      start: "2025-08-20T09:00:00",
-      end: "2025-08-20T12:00:00",
-      role: "Park Cleanup",
-      organization: "Green Earth Org",
-      description: "Collected trash and planted trees at Central Park.",
-    },
-  ];
+  const volunteerId = 9; // you’ll replace this with the logged-in volunteer’s ID
 
   useEffect(() => {
-    // Simulate API call: start with empty history
-    setVolunteerHistory([]);
-    setLoading(false);
-  }, []);
+    const fetchHistory = async () => {
+      try {
+        const response = await fetch(`/api/volunteer-history?volunteer_id=${volunteerId}`);
+        const data = await response.json();
+        setVolunteerHistory(data);
+      } catch (error) {
+        console.error("Error fetching volunteer history:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHistory();
+  }, [volunteerId]);
 
   const formatDateTime = (dateTimeStr) => {
     const date = new Date(dateTimeStr);
-    return date.toLocaleString("en-US", {
-      weekday: "short",
+    return date.toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
     });
   };
 
   if (loading) return <p>Loading...</p>;
 
   return (
+    <>
+    <Header />  
     <div className="timeline-container-outer">
       <h1 className="timeline-title">Volunteer History</h1>
-
-      {/* Toggle button for testing */}
-      <button
-        className="toggle-btn"
-        onClick={() =>
-          setVolunteerHistory(
-            volunteerHistory.length === 0 ? sampleData : []
-          )
-        }
-      >
-        {volunteerHistory.length === 0 ? "Show Sample History" : "Clear History"}
-      </button>
 
       {volunteerHistory.length === 0 ? (
         <div className="timeline-content sage-box no-history">
@@ -79,12 +59,13 @@ export default function VolunteerHist() {
                 </span>
                 <h2 className="timeline-role">{item.role || "No role info"}</h2>
                 <p className="timeline-org">{item.organization || "No organization info"}</p>
-                <p className="timeline-desc">{item.description || "No description available"}</p>
-              </div>
+                <p className="timeline-desc">{item.role || "No description available"}</p>
+                </div>
             </div>
           ))}
         </div>
       )}
     </div>
+    </>
   );
 }
