@@ -4,62 +4,23 @@ import "./event_list.css";
 
 function EventList() {
   const [events, setEvents] = useState([]);
-  const [editingEvent, setEditingEvent] = useState(null); // event being edited
-  const [formData, setFormData] = useState({}); // temporary edit data
 
-  // Fetch events
+  //get all events from the backend
   useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const res = await axios.get("http://localhost:3000/api/events");
+    axios
+      .get("http://localhost:3000/api/events")
+      .then((res) => {
+        console.log("Fetched events:", res.data);
         setEvents(res.data);
-      } catch (error) {
-        console.error("Error fetching events:", error);
-      }
-    };
-    fetchEvents();
+      })
+      .catch((err) => console.error("Error fetching events:", err));
   }, []);
-
-  // Handle delete
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this event?")) return;
-
-    try {
-      await axios.delete(`http://localhost:3000/api/events/${id}`);
-      setEvents(events.filter((e) => e.id !== id));
-    } catch (error) {
-      console.error("Error deleting event:", error);
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      return dateString;
     }
-  };
-
-  // Handle edit click
-  const handleEditClick = (event) => {
-    setEditingEvent(event.id);
-    setFormData({ ...event }); // fill form with current values
-  };
-
-  // Handle form field change
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  // Handle update submit
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await axios.put(
-        `http://localhost:3000/api/events/${editingEvent}`,
-        formData
-      );
-      setEvents(
-        events.map((e) => (e.id === editingEvent ? res.data.event : e))
-      );
-      setEditingEvent(null); // close edit mode
-      alert("Event updated successfully!");
-    } catch (error) {
-      console.error("Error updating event:", error);
-      alert("Failed to update event.");
-    }
+    return dateString.split('T')[0];
   };
 
   return (
@@ -80,102 +41,19 @@ function EventList() {
               <th>Date</th>
               <th>Start Time</th>
               <th>End Time</th>
-              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {events.map((event) => (
               <tr key={event.id}>
-                {editingEvent === event.id ? (
-                  <>
-                    <td>
-                      <input
-                        name="eventName"
-                        value={formData.eventName}
-                        onChange={handleChange}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        name="description"
-                        value={formData.description}
-                        onChange={handleChange}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        name="location"
-                        value={formData.location}
-                        onChange={handleChange}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        name="skills"
-                        value={formData.skills}
-                        onChange={handleChange}
-                      />
-                    </td>
-                    <td>
-                      <select
-                        name="urgency"
-                        value={formData.urgency}
-                        onChange={handleChange}
-                      >
-                        <option>High</option>
-                        <option>Medium</option>
-                        <option>Low</option>
-                      </select>
-                    </td>
-                    <td>
-                      <input
-                        type="date"
-                        name="date"
-                        value={formData.date}
-                        onChange={handleChange}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="time"
-                        name="startTime"
-                        value={formData.startTime}
-                        onChange={handleChange}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="time"
-                        name="endTime"
-                        value={formData.endTime}
-                        onChange={handleChange}
-                      />
-                    </td>
-                    <td>
-                      <button onClick={handleUpdate}>Save</button>
-                      <button onClick={() => setEditingEvent(null)}>
-                        Cancel
-                      </button>
-                    </td>
-                  </>
-                ) : (
-                  <>
-                    <td>{event.eventName}</td>
-                    <td>{event.description}</td>
-                    <td>{event.location}</td>
-                    <td>{event.skills.join(", ")}</td>
-                    <td>{event.urgency}</td>
-                    <td>{event.date}</td>
-                    <td>{event.startTime}</td>
-                    <td>{event.endTime}</td>
-                    <td>
-                      <button onClick={() => handleEditClick(event)}>Edit</button>
-                      <button onClick={() => handleDelete(event.id)}>
-                        Delete
-                      </button>
-                    </td>
-                  </>
-                )}
+                <td>{event.eventName || event.name || 'N/A'}</td>
+                <td>{event.description || event.requirements || 'N/A'}</td>
+                <td>{event.location || 'N/A'}</td>
+                <td>{Array.isArray(event.skills) ? event.skills.join(", ") : event.skills || 'N/A'}</td>
+                <td>{event.urgency || 'N/A'}</td>
+                <td>{formatDate(event.date)}</td>
+                <td>{event.startTime || event.time_start || 'N/A'}</td>
+                <td>{event.endTime || event.time_end || 'N/A'}</td>
               </tr>
             ))}
           </tbody>

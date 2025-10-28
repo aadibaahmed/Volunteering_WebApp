@@ -4,17 +4,10 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-<<<<<<< Updated upstream
   "dev": "nodemon server.js",
   "start": "node server.js",
   "test": "NODE_OPTIONS=--experimental-vm-modules jest --coverage"
 },
-=======
-    "dev": "nodemon server.js",
-    "start": "node server.js",
-    "test": "NODE_OPTIONS=--experimental-vm-modules jest --coverage"
-  },
->>>>>>> Stashed changes
   "author": "",
   "license": "ISC",
   "description": "",

@@ -13,93 +13,115 @@ function EventManagement() {
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
 
-  const allSkills = ["First Aid","CPR","Teaching","Event Setup","Food Service","Crowd Control","Logistics", "Cooking", "Cleaning", "Organizing"];
+  const allSkills = [
+    "First Aid", "CPR", "Teaching", "Event Setup", "Food Service",
+    "Crowd Control", "Logistics", "Cooking", "Cleaning", "Organizing"
+  ];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
-    if (!eventName || !eventDescription || !location || !skills.length || !urgency || !eventDate) {
+
+    if (!eventName || !eventDescription || !location || !skills.length || !urgency || !eventDate || !startTime || !endTime) {
       alert("Please fill out all required fields.");
       return;
     }
-  
-    const newEvent = {
-      eventName,
-      description: eventDescription,
+    const formData = {
+      event_name: eventName,
+      event_description: eventDescription,
       location,
-      skills,
+      required_skills: Array.isArray(skills) ? skills.join(", ") : skills,
       urgency,
-      date: eventDate,
-      startTime,
-      endTime,
+      event_date: eventDate,
+      start_time: startTime,
+      end_time: endTime,
     };
-    
-  
+
+    console.log("Sending data:", formData); 
+
     try {
-      const res = await axios.post("http://localhost:3000/api/events/create", newEvent);
-      setSuccessMsg(res.data.message);
-      console.log("Event created:", res.data.event);
-  
-      // reset form
+      const res = await axios.post("http://localhost:3000/api/events", formData);
+      
+      if (res.data) {
+        setSuccessMsg("Event created successfully!");
+        console.log("Event created:", res.data);
+      } else {
+        setSuccessMsg("Event created successfully! (No data returned)");
+      }
+    
       setEventName("");
       setEventDescription("");
       setLocation("");
       setSkills([]);
       setUrgency("");
       setEventDate("");
+      setStartTime("");
+      setEndTime("");
     } catch (error) {
       console.error("Error creating event:", error);
-      alert("Failed to create event");
+      console.error("Error response:", error.response);
+      alert(`Failed to create event: ${error.response?.data?.message || error.message}`);
     }
   };
-  
 
   const handleSkillChange = (e) => {
-    const options = Array.from(e.target.selectedOptions, (option) => option.value);
-    setSkills(options);
+    const selectedSkill = e.target.value;
+    if (selectedSkill && !skills.includes(selectedSkill)) {
+      setSkills([...skills, selectedSkill]);
+    }
+  };
+
+  const removeSkill = (skillToRemove) => {
+    setSkills(skills.filter(skill => skill !== skillToRemove));
   };
 
   return (
     <div className="event-wrapper">
       <form className="event-card" onSubmit={handleSubmit}>
         <h1>Create Event</h1>
-
         {successMsg && <div className="notice ok">{successMsg}</div>}
 
-        <label>Event Name</label>
-        <input
-          type="text"
-          maxLength={100}
-          value={eventName}
-          onChange={(e) => setEventName(e.target.value)}
-          required
+        <label>Event Name *</label>
+        <input 
+          type="text" 
+          value={eventName} 
+          onChange={(e) => setEventName(e.target.value)} 
+          required 
         />
 
-        <label>Event Description</label>
-        <textarea
-          value={eventDescription}
-          onChange={(e) => setEventDescription(e.target.value)}
-          required
-        ></textarea>
+        <label>Event Description *</label>
+        <textarea 
+          value={eventDescription} 
+          onChange={(e) => setEventDescription(e.target.value)} 
+          required 
+        />
 
-        <label>Location</label>
-        <textarea
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-          required
-        ></textarea>
+        <label>Location *</label>
+        <input 
+          type="text" 
+          value={location} 
+          onChange={(e) => setLocation(e.target.value)} 
+          required 
+        />
 
-        <label>Required Skills</label>
-        <select value={skills} onChange={handleSkillChange} required>
-          <option value="">-- Select a skill --</option>
+        <label>Required Skills *</label>
+        <select onChange={handleSkillChange} defaultValue="">
+          <option value="">-- Select skills --</option>
           {allSkills.map((skill, i) => (
-            <option key={i} value={skill}>
-              {skill}
-            </option>
+            <option key={i} value={skill}>{skill}</option>
           ))}
         </select>
+        
+        {/* Show selected skills */}
+        <div className="selected-skills">
+          {skills.map((skill, index) => (
+            <span key={index} className="skill-tag">
+              {skill}
+              <button type="button" onClick={() => removeSkill(skill)}>×</button>
+            </span>
+          ))}
+        </div>
 
-        <label>Urgency</label>
+        <label>Urgency *</label>
         <select value={urgency} onChange={(e) => setUrgency(e.target.value)} required>
           <option value="">-- Select --</option>
           <option value="High">High</option>
@@ -107,29 +129,28 @@ function EventManagement() {
           <option value="Low">Low</option>
         </select>
 
-        <label>Event Date</label>
-        <input
-          type="date"
-          value={eventDate}
-          onChange={(e) => setEventDate(e.target.value)}
-          min="2025-09-09"  //earliest date
-          max="2100-12-31" //latest date
-          required
-        />
-        <label>Start Time</label>
-        <input
-          type="time"
-          value={startTime}
-          onChange={(e) => setStartTime(e.target.value)}
-          required
+        <label>Event Date *</label>
+        <input 
+          type="date" 
+          value={eventDate} 
+          onChange={(e) => setEventDate(e.target.value)} 
+          required 
         />
 
-        <label>End Time</label>
-        <input
-          type="time"
-          value={endTime}
-          onChange={(e) => setEndTime(e.target.value)}
-          required
+        <label>Start Time *</label>
+        <input 
+          type="time" 
+          value={startTime} 
+          onChange={(e) => setStartTime(e.target.value)} 
+          required 
+        />
+
+        <label>End Time *</label>
+        <input 
+          type="time" 
+          value={endTime} 
+          onChange={(e) => setEndTime(e.target.value)} 
+          required 
         />
 
         <button type="submit">Create Event</button>
