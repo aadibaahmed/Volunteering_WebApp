@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './manager_dashboard.css';
 import { dashboardApi, eventApi, matchingApi, notificationApi, volunteerApi } from '../../lib/managerApi.js';
+import EventList from '../admin_side/event_list.jsx';
 
 function ManagerDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -61,7 +62,6 @@ function ManagerDashboard() {
       </div>
     );
   }
-
   return (
     <div className="manager-dashboard">
       <div className="dashboard-header">
@@ -104,6 +104,14 @@ function ManagerDashboard() {
         >
           Notifications
         </button>
+        
+        <button
+          className={activeTab === 'allEvents' ? 'tab active' : 'tab'}
+          onClick={() => handleTabChange('allEvents')}
+        >
+          All Events
+        </button>
+
       </div>
 
       <div className="dashboard-content">
@@ -112,6 +120,8 @@ function ManagerDashboard() {
         {activeTab === 'volunteers' && <VolunteersTab />}
         {activeTab === 'matching' && <MatchingTab />}
         {activeTab === 'notifications' && <NotificationsTab />}
+        {activeTab === 'allEvents' && <EventList />}
+
       </div>
     </div>
   );

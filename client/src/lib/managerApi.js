@@ -25,7 +25,7 @@ export const eventApi = {
 
   // Create new event
   createEvent: async (eventData) => {
-    const response = await fetch(`${API_BASE_URL}/events/create`, {
+    const response = await fetch(`${API_BASE_URL}/events`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify(eventData)

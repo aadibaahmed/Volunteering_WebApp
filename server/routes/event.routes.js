@@ -3,9 +3,11 @@ import { query } from "../database.js";
 
 const router = express.Router();
 
+
 //create new event
 router.post("/", async (req, res) => {
   try {
+    console.log("Received new event data:", req.body);
     const {
       event_name,
       event_description,
@@ -46,7 +48,11 @@ router.post("/", async (req, res) => {
     console.log("Full result:", result);
     console.log("Event created successfully:", result.rows[0]);
 
-    res.status(201).json(result.rows[0] || { message: "Event created successfully" });
+    res.status(201).json({
+      message: "Event created successfully!",
+      event: result.rows[0]
+    });
+    
     
   } catch (err) {
     console.error("Error creating event:", err);

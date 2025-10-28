@@ -39,9 +39,10 @@ function EventManagement() {
     console.log("Sending data:", formData); 
 
     try {
-      const res = await eventApi.createEvent(newEvent);
-      setSuccessMsg(res.message);
+      const res = await eventApi.createEvent(formData);
+      setSuccessMsg(res.message || "Event created successfully!");
       console.log("Event created:", res.event);
+      alert("Event created successfully!");
 
       // reset form
       setEventName("");

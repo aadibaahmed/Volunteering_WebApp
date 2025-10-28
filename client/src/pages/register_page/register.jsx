@@ -9,7 +9,6 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
   const [successMsg, setSuccessMsg] = useState("");
-  const [role, setRole] = useState("");
 
   const validate = () => {
     const e = {};
@@ -27,15 +26,7 @@ export default function Register() {
     if (!validate()) return;
 
     try {
-<<<<<<< HEAD
-      await api('/auth/register', {
-        method: 'POST',
-        body: JSON.stringify({ email, password, role }) 
-      });
-=======
       await api.post('/auth/register', { email, password });
-
->>>>>>> main
       setSuccessMsg("Registration successful! Please log in.");
       setEmail("");
       setPassword("");
@@ -44,7 +35,7 @@ export default function Register() {
         ...prev,
         form: err.response?.data?.error || err.message
       }));
-    }
+    }    
   };
 
   return (
@@ -65,13 +56,6 @@ export default function Register() {
           <input id="password" type="password" placeholder="••••••••" minLength={8} maxLength={12}
                  value={password} onChange={(e) => setPassword(e.target.value)} required />
           {errors.password && <div className="error">{errors.password}</div>}
-          <label>Role</label>
-
-          <select value={role} onChange={(e) => setRole(e.target.value)} required>
-            <option value="">Select role</option>
-            <option value="admin">Admin</option>
-            <option value="volunteer">Volunteer</option>
-          </select>
 
           <button className = "Register_button" type="submit">Register</button>
         </div>
