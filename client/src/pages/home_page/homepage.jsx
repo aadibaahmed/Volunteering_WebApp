@@ -15,7 +15,7 @@ function Homepage() {
             Whether you’re new or returning, your time and skills truly matter.
           </p>
           <div className="buttons">
-            <Link className="cta-btn" to="/events">
+            <Link className="cta-btn" to="/allevents">
               View Events
             </Link>
             <Link className="outline-btn" to="/register">
