@@ -25,7 +25,6 @@ function Events() {
   }, []);
 
   const handleDetails = (eventId) => {
-    console.log(eventId)
     navigate(`/events/${eventId}`);
   };
 
@@ -61,7 +60,7 @@ function Events() {
                   <td>{new Date(event.date).toLocaleDateString()}</td>
                   <td>
                     <button
-                      className="signup-button"
+                      className="view_button"
                       onClick={() => handleDetails(event.id)}
                     >
                       View Details

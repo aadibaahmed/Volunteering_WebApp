@@ -69,7 +69,7 @@
   background-color: #eef5ff;
 }
 
-.signup-button {
+.view_button {
   background-color: #0a3d62;
   color: #fff;
   border: none;
@@ -80,7 +80,7 @@
   transition: all 0.2s ease-in-out;
 }
 
-.signup-button:hover {
+.view_button:hover {
   background-color: #145b8d;
   transform: translateY(-2px);
   box-shadow: 0 3px 8px rgba(10, 61, 98, 0.2);

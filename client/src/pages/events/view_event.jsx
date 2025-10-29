@@ -9,6 +9,7 @@ function EventDetails() {
   const navigate = useNavigate();
   const [event, setEvent] = useState(null);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -18,6 +19,8 @@ function EventDetails() {
       } catch (err) {
         console.error("Error fetching event:", err);
         setError("Failed to load event details.");
+      } finally {
+        setLoading(false);
       }
     };
     fetchEvent();
@@ -25,17 +28,34 @@ function EventDetails() {
 
   const handleSignUp = async () => {
     try {
-      await api.post(`/events/signup/${id}`);
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        alert("You must be logged in to sign up for an event.");
+        navigate('/login');
+        return;
+      }
+      const res = await api.post(
+        `/events/signup/${id}`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
       alert("Successfully signed up!");
       navigate('/events');
     } catch (err) {
       console.error("Sign up failed:", err);
-      alert("Failed to sign up.");
+      if (err.response?.status === 401) {
+        alert("Your session expired. Please log in again.");
+        navigate('/login');
+      } else {
+        alert("Failed to sign up. Please try again.");
+      }
     }
   };
 
+  if (loading) return <p>Loading...</p>;
   if (error) return <p>{error}</p>;
-  if (!event) return <p>Loading...</p>;
 
   return (
     <div className="event-details-page">
@@ -48,9 +68,9 @@ function EventDetails() {
           <p><strong>Urgency:</strong> {event.urgency}</p>
           <p><strong>Skills Required:</strong> 
             {Array.isArray(event.skills)
-                ? event.skills.join(', ')
-                : event.skills?.replace(/[{}]/g, '').split(',').join(', ')}
-            </p>
+              ? event.skills.join(', ')
+              : event.skills?.replace(/[{}]/g, '').split(',').join(', ')}
+          </p>
           <p><strong>Date:</strong> {new Date(event.date).toLocaleDateString()}</p>
           <p><strong>Start:</strong> {event.startTime}</p>
           <p><strong>End:</strong> {event.endTime}</p>

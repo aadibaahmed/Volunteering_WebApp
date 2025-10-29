@@ -70,7 +70,6 @@ router.get('/unread', requireAuth, (req, res) => {
   }
 });
 
-// Mark one notification as read
 router.put('/:id/read', requireAuth, (req, res) => {
   try {
     const id = parseInt(req.params.id);
@@ -78,7 +77,7 @@ router.put('/:id/read', requireAuth, (req, res) => {
 
     const notif = markNotificationAsRead(id);
     if (!notif) return res.status(404).json({ error: 'Notification not found' });
-    if (notif.userId !== req.user.sub) return res.status(403).json({ error: 'Access denied' });
+    if (notif.user_id !== req.user.sub) return res.status(403).json({ error: 'Access denied' });
 
     res.json({ message: 'Notification marked as read', notification: notif });
   } catch (error) {
@@ -106,7 +105,7 @@ router.delete('/:id', requireAuth, (req, res) => {
 
     const notif = deleteNotification(id);
     if (!notif) return res.status(404).json({ error: 'Notification not found' });
-    if (notif.userId !== req.user.sub) return res.status(403).json({ error: 'Access denied' });
+    if (notif.user_id !== req.user.sub) return res.status(403).json({ error: 'Access denied' });
 
     res.json({ message: 'Notification deleted successfully' });
   } catch (error) {

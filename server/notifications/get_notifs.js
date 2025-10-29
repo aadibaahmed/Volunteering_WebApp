@@ -74,10 +74,10 @@ export function getUnreadNotificationsForUser(userId) {
 }
 
 // Create a new notification
-export function createNotification(userId, message, type = 'update', eventId = null, priority = 'medium') {
+export function createNotification(user_id, message, type = 'update', eventId = null, priority = 'medium') {
   const newNotification = {
     id: notifications.length + 1,
-    userId,
+    user_id,
     message,
     time: 'Just now',
     unread: true,
