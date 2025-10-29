@@ -1,140 +1,89 @@
-// notifications/get_notifs.js
+import { pool } from '../database.js'; 
 
-// In-memory notification data
-export let notifications = [
-  {
-    id: 1,
-    user_id: 1,
-    message: "You’ve been matched with a community clean-up event",
-    time: "5 minutes ago",
-    unread: true,
-    type: 'assignment',
-    priority: 'high'
-  },
-  {
-    id: 2,
-    user_id: 1,
-    message: "Your volunteering hours have been approved",
-    time: "2 hours ago",
-    unread: false,
-    type: 'approval',
-    priority: 'medium'
-  },
-  {
-    id: 3,
-    user_id: 2,
-    message: "New event available: Food Bank Distribution",
-    time: "1 hour ago",
-    unread: true,
-    type: 'event_available',
-    priority: 'medium'
-  }
-];
-
-// Validation for new or updated notifications
-export function validateNotification(data) {
-  const errors = [];
-
-  if (!data.message || typeof data.message !== 'string' || !data.message.trim()) {
-    errors.push('Invalid message: required non-empty string');
-  } else if (data.message.length > 255) {
-    errors.push('Message too long (max 255 characters)');
-  }
-
-  if (!data.time || typeof data.time !== 'string' || !data.time.trim()) {
-    errors.push('Invalid time: required non-empty string');
-  } else if (data.time.length > 50) {
-    errors.push('Time too long (max 50 characters)');
-  }
-
-  if (typeof data.unread !== 'boolean') {
-    errors.push('Invalid unread: must be a boolean');
-  }
-
-  if (data.userId && (typeof data.userId !== 'number' || data.userId <= 0)) {
-    errors.push('Invalid userId: must be a positive number');
-  }
-
-  return errors;
+export async function getNotifications() {
+  const result = await pool.query('SELECT * FROM notifications ORDER BY notif_id DESC');
+  return result.rows;
 }
 
-// Get all notifications (for admin)
-export function getNotifications() {
-  return notifications;
+export async function getNotificationsForUser(user_id) {
+  const result = await pool.query(
+    'SELECT * FROM notifications WHERE user_id = $1 ORDER BY time DESC',
+    [user_id]
+  );
+  return result.rows;
 }
 
-// Get notifications for a specific user
-export function getNotificationsForUser(userId) {
-  return notifications.filter(n => n.user_id  === userId);
+export async function getUnreadNotificationsForUser(user_id) {
+  const result = await pool.query(
+    'SELECT * FROM notifications WHERE user_id = $1 AND unread = TRUE ORDER BY time DESC',
+    [user_id]
+  );
+  return result.rows;
 }
 
-// Get only unread notifications for a user
-export function getUnreadNotificationsForUser(userId) {
-  return notifications.filter(n => n.user_id  === userId && n.unread);
+export async function createNotification(user_id, message, type = 'update', priority = 'medium') {
+  const result = await pool.query(
+    `INSERT INTO notifications (user_id, message, time, unread, type, priority)
+     VALUES ($1, $2, NOW(), TRUE, $3, $4)
+     RETURNING *`,
+    [user_id, message, type, priority]
+  );
+  return result.rows[0];
 }
 
-// Create a new notification
-export function createNotification(user_id, message, type = 'update', eventId = null, priority = 'medium') {
-  const newNotification = {
-    id: notifications.length + 1,
-    user_id,
-    message,
-    time: 'Just now',
-    unread: true,
-    type,
-    eventId,
-    priority
-  };
-
-  const errors = validateNotification(newNotification);
-  if (errors.length > 0) {
-    throw new Error('Invalid notification: ' + errors.join(', '));
-  }
-
-  notifications.push(newNotification);
-  return newNotification;
+export async function markNotificationAsRead(notif_id) {
+  const result = await pool.query(
+    `UPDATE notifications
+     SET unread = FALSE
+     WHERE notif_id = $1
+     RETURNING *`,
+    [notif_id]
+  );
+  return result.rows[0];
 }
 
-// Mark one notification as read
-export function markNotificationAsRead(notificationId) {
-  const notification = notifications.find(n => n.id === notificationId);
-  if (notification) {
-    notification.unread = false;
-    return notification;
-  }
-  return null;
+export async function markAllNotificationsAsRead(user_id) {
+  const result = await pool.query(
+    `UPDATE notifications
+     SET unread = FALSE
+     WHERE user_id = $1
+     RETURNING *`,
+    [user_id]
+  );
+  return result.rowCount;
 }
 
-// Mark all notifications as read for a user
-export function markAllNotificationsAsRead(userId) {
-  const userNotifications = notifications.filter(n => n.user_id  === userId);
-  userNotifications.forEach(n => n.unread = false);
-  return userNotifications.length;
+export async function deleteNotification(notif_id) {
+  const result = await pool.query(
+    `DELETE FROM notifications
+     WHERE notif_id = $1
+     RETURNING *`,
+    [notif_id]
+  );
+  return result.rows[0];
 }
 
-// Delete a notification by ID
-export function deleteNotification(notificationId) {
-  const index = notifications.findIndex(n => n.id === notificationId);
-  if (index !== -1) {
-    return notifications.splice(index, 1)[0];
-  }
-  return null;
-}
+export async function getNotificationStats(user_id) {
+  const result = await pool.query(
+    `SELECT
+        COUNT(*) AS total,
+        COUNT(*) FILTER (WHERE unread = TRUE) AS unread,
+        COUNT(*) FILTER (WHERE priority = 'high') AS high,
+        COUNT(*) FILTER (WHERE priority = 'medium') AS medium,
+        COUNT(*) FILTER (WHERE priority = 'low') AS low
+     FROM notifications
+     WHERE user_id = $1`,
+    [user_id]
+  );
 
-// Get stats summary for a user
-export function getNotificationStats(userId) {
-  const userNotifications = getNotificationsForUser(userId);
-  const unreadCount = userNotifications.filter(n => n.unread).length;
-
-  const priorityCounts = {
-    high: userNotifications.filter(n => n.priority === 'high').length,
-    medium: userNotifications.filter(n => n.priority === 'medium').length,
-    low: userNotifications.filter(n => n.priority === 'low').length
-  };
-
+  const stats = result.rows[0];
   return {
-    total: userNotifications.length,
-    unread: unreadCount,
-    priorityCounts
+    total: Number(stats.total),
+    unread: Number(stats.unread),
+    priorityCounts: {
+      high: Number(stats.high),
+      medium: Number(stats.medium),
+      low: Number(stats.low),
+    },
   };
 }

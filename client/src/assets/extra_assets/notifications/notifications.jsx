@@ -23,7 +23,7 @@ const Notifications = () => {
         let endpoint = '';
 
         if (role === 'superuser') {
-          endpoint = '/notifications'; 
+          endpoint = '/notifications';
         } else if (role === 'user') {
           endpoint = '/my-notifications';
         } else {
@@ -32,7 +32,18 @@ const Notifications = () => {
         }
 
         const { data } = await api.get(endpoint);
-        setNotifications(data);
+
+        const formatted = data.map((n) => ({
+          id: n.notif_id ?? n.id,
+          user_id: n.user_id,
+          message: n.message,
+          time: new Date(n.time).toLocaleString(),
+          unread: n.unread,
+          type: n.type,
+          priority: n.priority,
+        }));
+
+        setNotifications(formatted);
       } catch (err) {
         console.error('Error fetching notifications:', err);
       } finally {
@@ -43,12 +54,13 @@ const Notifications = () => {
     if (role) fetchNotifications();
   }, [role]);
 
-  const markAsRead = async (notificationId) => {
+  const markAsRead = async (notif) => {
+    console.log(notif)
     try {
-      await api.put(`/${notificationId}/read`);
+      await api.put(`/${notif}/read`);
       setNotifications((prev) =>
         prev.map((n) =>
-          n.id === notificationId ? { ...n, unread: false } : n
+          n.id === notif ? { ...n, unread: false } : n
         )
       );
     } catch (err) {
@@ -95,7 +107,9 @@ const Notifications = () => {
                     <div className="notification-meta">
                       <span className="time">{n.time}</span>
                       {n.priority && (
-                        <span className={`priority ${n.priority.toLowerCase()}`}>
+                        <span
+                          className={`priority ${n.priority.toLowerCase()}`}
+                        >
                           {n.priority}
                         </span>
                       )}

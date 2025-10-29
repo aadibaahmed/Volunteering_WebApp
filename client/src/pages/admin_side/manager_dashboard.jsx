@@ -394,6 +394,7 @@ function MatchingTab() {
 }
 
 // Notifications Tab Component
+
 function NotificationsTab() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -403,28 +404,39 @@ function NotificationsTab() {
   }, []);
 
   const fetchNotifications = async () => {
+    setLoading(true);
     try {
-      const notifications = await notificationApi.getMyNotifications();
-      setNotifications(notifications);
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
+      const data = await notificationApi.getMyNotifications();
+      // Normalize data
+      const formatted = data.map(n => ({
+        id: n.notif_id ?? n.id,
+        user_id: n.user_id,
+        message: n.message,
+        time: new Date(n.time).toLocaleString(),
+        unread: n.unread,
+        type: n.type,
+        priority: n.priority,
+      }));
+      setNotifications(formatted);
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-  const markAsRead = async (notificationId) => {
+  const markAsRead = async (id) => {
     try {
-      await notificationApi.markAsRead(notificationId);
-      fetchNotifications(); // Refresh the list
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
+      await notificationApi.markAsRead(id);
+      setNotifications(prev =>
+        prev.map(n => (n.id === id ? { ...n, unread: false } : n))
+      );
+    } catch (err) {
+      console.error(err);
     }
   };
 
-  if (loading) {
-    return <div className="loading">Loading notifications...</div>;
-  }
+  if (loading) return <div>Loading Notifications...</div>;
 
   return (
     <div className="notifications-tab">
@@ -439,9 +451,7 @@ function NotificationsTab() {
               <div className="notification-message">{notification.message}</div>
               <div className="notification-meta">
                 <span className="time">{notification.time}</span>
-                <span className={`priority ${notification.priority}`}>
-                  {notification.priority}
-                </span>
+                <span className={`priority ${notification.priority}`}>{notification.priority}</span>
                 <span className="type">{notification.type}</span>
               </div>
             </div>

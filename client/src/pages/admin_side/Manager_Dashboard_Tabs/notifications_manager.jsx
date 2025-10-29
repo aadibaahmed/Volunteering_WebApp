@@ -14,7 +14,17 @@ function NotificationsTab() {
     setLoading(true);
     try {
       const data = await notificationApi.getMyNotifications();
-      setNotifications(data);
+      // Normalize data
+      const formatted = data.map(n => ({
+        id: n.notif_id ?? n.id,
+        user_id: n.user_id,
+        message: n.message,
+        time: new Date(n.time).toLocaleString(),
+        unread: n.unread,
+        type: n.type,
+        priority: n.priority,
+      }));
+      setNotifications(formatted);
     } catch (err) {
       console.error(err);
     } finally {
@@ -24,8 +34,12 @@ function NotificationsTab() {
 
   const markAsRead = async (id) => {
     try {
+      // Call the API
       await notificationApi.markAsRead(id);
-      fetchNotifications();
+      // Update local state instead of refetching
+      setNotifications(prev =>
+        prev.map(n => (n.id === id ? { ...n, unread: false } : n))
+      );
     } catch (err) {
       console.error(err);
     }
@@ -34,7 +48,7 @@ function NotificationsTab() {
   if (loading) return <div>Loading Notifications...</div>;
 
   return (
-  <div className="notifications-tab">
+    <div className="notifications-tab">
       <h3>Notifications</h3>
       <div className="notifications-list">
         {notifications.map(notification => (
@@ -46,9 +60,7 @@ function NotificationsTab() {
               <div className="notification-message">{notification.message}</div>
               <div className="notification-meta">
                 <span className="time">{notification.time}</span>
-                <span className={`priority ${notification.priority}`}>
-                  {notification.priority}
-                </span>
+                <span className={`priority ${notification.priority}`}>{notification.priority}</span>
                 <span className="type">{notification.type}</span>
               </div>
             </div>
