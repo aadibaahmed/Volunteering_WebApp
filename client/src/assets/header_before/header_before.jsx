@@ -1,4 +1,3 @@
-import React from 'react'
 import './header_before.css'
 import { Link } from "react-router-dom";
 
@@ -6,6 +5,7 @@ import { Link } from "react-router-dom";
 
 function HeaderBefore() {
 const header_items = [
+        { title: "Home", link: `/` },
         { title: "Events", link: `/allevents` },
         { title: "About Us", link: `/aboutus` }
       ]
