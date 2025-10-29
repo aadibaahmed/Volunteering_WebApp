@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './manager_dashboard.css';
 import { dashboardApi, eventApi, matchingApi, notificationApi, volunteerApi } from '../../lib/managerApi.js';
 import EventList from '../admin_side/event_list.jsx';
+import Header from '../../assets/header_after/header_after.jsx'
 
 function ManagerDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -64,6 +65,7 @@ function ManagerDashboard() {
   }
   return (
     <div className="manager-dashboard">
+      <Header/>
       <div className="dashboard-header">
         <h1>Manager Dashboard</h1>
         <div className="dashboard-actions">
@@ -273,8 +275,8 @@ function VolunteersTab() {
     <div className="volunteers-tab">
       <h3>Volunteer Management</h3>
       <div className="volunteers-list">
-        {volunteers.map(volunteer => (
-          <div key={volunteer.volunteerId} className="volunteer-card">
+        {volunteers.map((volunteer, index) => (
+          <div key={volunteer.volunteerId || index} className="volunteer-card">
             <div className="volunteer-info">
               <h4>{volunteer.volunteerName}</h4>
               <p>{volunteer.email}</p>

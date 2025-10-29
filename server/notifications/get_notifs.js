@@ -65,12 +65,12 @@ export function getNotifications() {
 
 // Get notifications for a specific user
 export function getNotificationsForUser(userId) {
-  return notifications.filter(n => n.userId === userId);
+  return notifications.filter(n => n.user_id  === userId);
 }
 
 // Get only unread notifications for a user
 export function getUnreadNotificationsForUser(userId) {
-  return notifications.filter(n => n.userId === userId && n.unread);
+  return notifications.filter(n => n.user_id  === userId && n.unread);
 }
 
 // Create a new notification
@@ -107,7 +107,7 @@ export function markNotificationAsRead(notificationId) {
 
 // Mark all notifications as read for a user
 export function markAllNotificationsAsRead(userId) {
-  const userNotifications = notifications.filter(n => n.userId === userId);
+  const userNotifications = notifications.filter(n => n.user_id  === userId);
   userNotifications.forEach(n => n.unread = false);
   return userNotifications.length;
 }

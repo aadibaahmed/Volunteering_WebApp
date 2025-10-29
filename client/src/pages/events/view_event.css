@@ -1,0 +1,55 @@
+.event-details-page {
+  align-content: center;
+}
+
+.event-details-container {
+  background: #fff;
+  width: 100%;
+  margin-top: 3rem;
+  padding: 6rem 8rem 8rem 8rem;
+  border-radius: 1rem;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
+}
+
+.event-title {
+  color: #0a3d62;
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.event-description {
+  color: #444;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.event-info p {
+  margin: 8px 0;
+  font-size: 20px;
+  color: #333;
+}
+
+.signup-button, .back-button {
+  background-color: #0a3d62;
+  color: #fff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: 0.2s ease;
+  margin-right: 10px;
+}
+
+.signup-button:hover {
+  background-color: #145b8d;
+}
+
+.back-button {
+  background-color: #888;
+}
+
+.back-button:hover {
+  background-color: #666;
+}
