@@ -1,63 +1,124 @@
-import React, { useState, useEffect} from 'react';
+import { useState, useEffect } from 'react';
 import './Notifications.css';
 import { api } from '../../../lib/api';
 
 const Notifications = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [notifications, setNotifications] = useState([]);
-  // Sample placeholder volunteering notifications
-  // const notifications = [
-  //   { id: 1, message: "You’ve been matched with a community clean-up event", time: "5 minutes ago", unread: true },
-  //   { id: 2, message: "Your volunteering hours have been approved", time: "2 hours ago", unread: false },
-  // ];
+  const [role, setRole] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      const user = JSON.parse(storedUser);
+      setRole(user.role);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const { data } = await api.get('/notifications');
+        setLoading(true);
+        let endpoint = '';
+
+        if (role === 'superuser') {
+          endpoint = '/notifications'; 
+        } else if (role === 'user') {
+          endpoint = '/my-notifications';
+        } else {
+          console.warn('Unknown role. No notifications endpoint selected.');
+          return;
+        }
+
+        const { data } = await api.get(endpoint);
         setNotifications(data);
       } catch (err) {
         console.error('Error fetching notifications:', err);
+      } finally {
+        setLoading(false);
       }
     };
-    fetchNotifications();
-  }, []);
+
+    if (role) fetchNotifications();
+  }, [role]);
+
+  const markAsRead = async (notificationId) => {
+    try {
+      await api.put(`/${notificationId}/read`);
+      setNotifications((prev) =>
+        prev.map((n) =>
+          n.id === notificationId ? { ...n, unread: false } : n
+        )
+      );
+    } catch (err) {
+      console.error('Error marking notification as read:', err);
+    }
+  };
+
+  const unreadCount = notifications.filter((n) => n.unread).length;
 
   return (
     <div className="notifications-container">
-      <button 
+      <button
         className="notifications-bell"
         onClick={() => setShowDropdown(!showDropdown)}
         aria-label="Notifications"
       >
         <span className="bell-icon">🔔</span>
-        {notifications.some(n => n.unread) && (
-          <span className="notification-badge">
-            {notifications.filter(n => n.unread).length}
-          </span>
+        {unreadCount > 0 && (
+          <span className="notification-badge">{unreadCount}</span>
         )}
       </button>
 
       {showDropdown && (
         <div className="notifications-dropdown">
           <div className="notifications-header">
-            <h3>Notifications</h3>
+            <h3>
+              {role === 'superuser'
+                ? 'Manager Notifications'
+                : 'Your Notifications'}
+            </h3>
           </div>
 
-          <div className="notifications-list">
-            {notifications.map((n) => (
-              <div 
-                key={n.id}
-                className={`notification-item ${n.unread ? 'unread' : ''}`}
-              >
-                <div className="notification-content">
-                  <div className="notification-message">{n.message}</div>
-                  <div className="notification-time">{n.time}</div>
+          {loading ? (
+            <div className="loading">Loading notifications...</div>
+          ) : notifications.length > 0 ? (
+            <div className="notifications-list">
+              {notifications.map((n) => (
+                <div
+                  key={n.id}
+                  className={`notification-item ${n.unread ? 'unread' : 'read'}`}
+                >
+                  <div className="notification-content">
+                    <div className="notification-message">{n.message}</div>
+                    <div className="notification-meta">
+                      <span className="time">{n.time}</span>
+                      {n.priority && (
+                        <span className={`priority ${n.priority.toLowerCase()}`}>
+                          {n.priority}
+                        </span>
+                      )}
+                      {n.type && <span className="type">{n.type}</span>}
+                    </div>
+                  </div>
+
+                  <div className="notification-actions">
+                    {n.unread && (
+                      <button
+                        onClick={() => markAsRead(n.id)}
+                        className="mark-read-btn"
+                      >
+                        Mark as Read
+                      </button>
+                    )}
+                  </div>
                 </div>
-                {n.unread && <div className="unread-dot"></div>}
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="no-notifications">No notifications</div>
+          )}
         </div>
       )}
     </div>
