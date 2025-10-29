@@ -1,13 +1,14 @@
 import express from "express";
 import { pool } from "../database.js"; // your PostgreSQL connection pool
+import { requireAuth } from "../middleware/auth.js"; // Adjust path as necessary if auth.js is in another folder
 
 const router = express.Router();
 
 // GET volunteer history (optionally filtered by volunteer_id)
-router.get("/", async (req, res) => {
-  const { volunteer_id } = req.query; // optional query param
-
+router.get("/", requireAuth, async (req, res) => {
+  console.log("🟡 /api/volunteer-history route hit");
   try {
+    const volunteerId = req.user.sub;
     const query = `
       SELECT 
         h.history_id AS id,
@@ -17,12 +18,11 @@ router.get("/", async (req, res) => {
         e.name AS organization
       FROM volunteer_history h
       JOIN events e ON h.event_id = e.event_id
-      ${volunteer_id ? "WHERE h.volunteer_id = $1" : ""}
+      WHERE h.volunteer_id = $1 
       ORDER BY h.participation_date DESC;
     `;
 
-    const params = volunteer_id ? [volunteer_id] : [];
-    const result = await pool.query(query, params);
+    const result = await pool.query(query, [volunteerId]);
 
     // if no results, return a friendly message
     if (result.rows.length === 0) {

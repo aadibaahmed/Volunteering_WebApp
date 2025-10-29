@@ -23,29 +23,39 @@ beforeEach(() => {
 
 describe("Volunteer History Routes (/api/volunteer-history)", () => {
 
-  // Test 1: Successful fetch for a specific ID
-  test("should return 200 and an array of volunteer history records for a specific ID", async () => {
+  test("should return 200 and history records for the authenticated user", async () => {
+    const MOCK_USER_ID = 123;
+    const mockHistoryData = [
+      {
+        id: 1,
+        start: "2025-01-01",
+        end: "2025-01-01",
+        role: "Logistics",
+        organization: "Auth Test Org",
+        description: "Setup tables",
+      },
+    ];
+  
+    // 1. Mock the pool query to return specific data
     await jest.unstable_mockModule("../../database.js", () => ({
       pool: {
         query: jest.fn().mockResolvedValue({
-          rows: [
-            {
-              id: 1,
-              start: "2025-01-01",
-              end: "2025-01-02",
-              role: "Helper",
-              organization: "Test Org",
-            },
-          ],
+          rows: mockHistoryData,
         }),
       },
-      // Must mock all exports used by server.js, even if they aren't 'pool'
-      query: jest.fn(), 
+      query: jest.fn(),
     }));
-
+  
+    // 2. Mock requireAuth to inject a user
+    await jest.unstable_mockModule("../../middleware/auth.js", () => ({
+      requireAuth: (req, res, next) => {
+        // Mock the decoded JWT payload
+        req.user = { sub: MOCK_USER_ID, email: "test@user.com", role: "volunteer" };
+        next();
+      },
+    }));
     await importApp();
-    const res = await request(app).get("/api/volunteer-history?volunteer_id=1");
-
+    const res = await request(app).get("/api/volunteer-history/history");
     expect(res.statusCode).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
     expect(res.body[0]).toHaveProperty("role", "Helper");

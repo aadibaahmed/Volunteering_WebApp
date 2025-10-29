@@ -18,7 +18,6 @@ import notif_routes from './routes/notifs.routes.js'
 import all_events_route from './routes/allevents.routes.js'
 import volunteer_matching_routes from './routes/volunteer_matching.routes.js'
 import volunteer_history_routes from './routes/volunteer_history.routes.js'
-import VolunteerHist from './routes/volunteerHist.routes.js'
 import volunteerHistoryRoutes from "./routes/volunteerHist.routes.js";
 
 
@@ -50,7 +49,6 @@ app.use('/api', all_events_route);
 
 app.use('/api/volunteer-matching', volunteer_matching_routes);
 
-app.use('/api/volunteer-history', VolunteerHist);
 
 export default app;
 
