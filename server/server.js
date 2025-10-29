@@ -19,6 +19,7 @@ import all_events_route from './routes/allevents.routes.js'
 import volunteer_matching_routes from './routes/volunteer_matching.routes.js'
 import volunteer_history_routes from './routes/volunteer_history.routes.js'
 import volunteerHistoryRoutes from "./routes/volunteerHist.routes.js";
+//import volunteerDashRoutes from "./routes/volunteerDash.routes.js";
 
 
 const app = express();
@@ -48,6 +49,8 @@ app.use("/api/volunteer-history", volunteerHistoryRoutes);
 app.use('/api', all_events_route);
 
 app.use('/api/volunteer-matching', volunteer_matching_routes);
+
+//app.use("/api/volunteer-dashboard", volunteerDashRoutes);
 
 
 export default app;

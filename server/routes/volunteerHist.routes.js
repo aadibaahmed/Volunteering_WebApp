@@ -6,7 +6,6 @@ const router = express.Router();
 
 // GET volunteer history (optionally filtered by volunteer_id)
 router.get("/", requireAuth, async (req, res) => {
-  console.log("🟡 /api/volunteer-history route hit");
   try {
     const volunteerId = req.user.sub;
     const query = `

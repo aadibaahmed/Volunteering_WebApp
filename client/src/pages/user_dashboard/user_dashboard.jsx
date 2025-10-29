@@ -42,7 +42,6 @@ const VolunteerDashboard = () => {
         setActiveOpportunities(data.activeOpportunities);
         setPendingApprovals(data.pendingApprovals);
         setTotalHours(data.totalHours);
-        setDonations(data.donations);
 
       } catch (error) {
         console.error("Error fetching volunteer dashboard data:", error);
