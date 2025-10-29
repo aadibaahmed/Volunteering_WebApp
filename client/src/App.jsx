@@ -11,6 +11,17 @@ import VolunteerDashboard from './pages/user_dashboard/user_dashboard.jsx';
 import Events from './pages/events/events.jsx';
 import EventList from './pages/admin_side/event_list.jsx';
 import ManagerDashboard from './pages/admin_side/manager_dashboard.jsx';
+
+// for the manager dashboard
+import OverViewTab from './pages/admin_side/Manager_Dashboard_Tabs/overview.jsx'
+import VolunteerCheck from './pages/admin_side/Manager_Dashboard_Tabs/volunteer_check.jsx'
+import ManagerEvents from './pages/admin_side/Manager_Dashboard_Tabs/manager_events.jsx'
+import ManagerVolunteerMatch from './pages/admin_side/Manager_Dashboard_Tabs/volunteer_matching_manager.jsx'
+import ManagerNotifs from './pages/admin_side/Manager_Dashboard_Tabs/notifications_manager.jsx'
+
+
+
+
 import './App.css';
 
 function Protected({ children, allowedRoles }) {
@@ -64,11 +75,53 @@ export default function App() {
       />
 
       {/* MANAGER / SUPERUSER DASHBOARD */}
+   <Route
+  path="/managerdash"
+  element={
+    <Protected allowedRoles={['superuser']}>
+      <ManagerDashboard />
+    </Protected>
+  }
+/>
+
+{/* MANAGER DASHBOARD TABS */}
       <Route
-        path="/managerdash"
+        path="/managerdash/overview"
         element={
           <Protected allowedRoles={['superuser']}>
-            <ManagerDashboard />
+            <OverViewTab />
+          </Protected>
+        }
+      />
+      <Route
+        path="/managerdash/volunteers"
+        element={
+          <Protected allowedRoles={['superuser']}>
+            <VolunteerCheck />
+          </Protected>
+        }
+      />
+      <Route
+        path="/managerdash/events"
+        element={
+          <Protected allowedRoles={['superuser']}>
+            <ManagerEvents />
+          </Protected>
+        }
+      />
+      <Route
+        path="/managerdash/matching"
+        element={
+          <Protected allowedRoles={['superuser']}>
+            <ManagerVolunteerMatch />
+          </Protected>
+        }
+      />
+      <Route
+        path="/managerdash/notifications"
+        element={
+          <Protected allowedRoles={['superuser']}>
+            <ManagerNotifs />
           </Protected>
         }
       />
