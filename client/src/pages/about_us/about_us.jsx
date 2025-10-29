@@ -25,7 +25,6 @@ function AboutUs() {
         </div>
       </main>
 
-      {/* Contact Us Section */}
       <section className="contact-section">
         <h2>Contact Us</h2>
         <p>Email: <a href="mailto:info@volunteerhub.com">info@volunteerhub.com</a></p>

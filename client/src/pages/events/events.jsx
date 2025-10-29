@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from '../../assets/header_after/header_after';
 import './events.css';
 import { api } from '../../lib/api';
 
 function Events() {
   const [events, setEvents] = useState([]);
+          console.log(events)
+
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const getEvents = async () => {
@@ -19,6 +23,11 @@ function Events() {
     };
     getEvents();
   }, []);
+
+  const handleDetails = (eventId) => {
+    console.log(eventId)
+    navigate(`/events/${eventId}`);
+  };
 
   const renderTable = (title, items) => (
     <div className="status-section">
@@ -37,6 +46,7 @@ function Events() {
                 <th>Start</th>
                 <th>End</th>
                 <th>Date</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -49,6 +59,14 @@ function Events() {
                   <td>{new Date(event.start).toLocaleString()}</td>
                   <td>{new Date(event.end).toLocaleString()}</td>
                   <td>{new Date(event.date).toLocaleDateString()}</td>
+                  <td>
+                    <button
+                      className="signup-button"
+                      onClick={() => handleDetails(event.id)}
+                    >
+                      View Details
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -63,16 +81,13 @@ function Events() {
       <div className="events-container">
         <Header />
         <div className="events-header">
-          <h1 className="events-title">
-            THIS IS WHERE ALL THE EVENTS WILL BE LISTED
-          </h1>
+          <h1 className="events-title" style={{ 'padding-left': '6rem'}}>Please sign up for events</h1>
+          <p style={{ 'font-size': '24px', color: '#555', marginTop: '2rem' }}>
+            Explore volunteer opportunities and upcoming events below.
+          </p>
         </div>
 
-        {error ? (
-          <p>{error}</p>
-        ) : (
-          renderTable("Upcoming Events", events)
-        )}
+        {error ? <p>{error}</p> : renderTable("Upcoming Events", events)}
       </div>
     </div>
   );

@@ -11,6 +11,7 @@ import VolunteerDashboard from './pages/user_dashboard/user_dashboard.jsx';
 import Events from './pages/events/events.jsx';
 import EventList from './pages/admin_side/event_list.jsx';
 import ManagerDashboard from './pages/admin_side/manager_dashboard.jsx';
+import EventDetails from './pages/events/view_event.jsx'
 
 // for the manager dashboard
 import OverViewTab from './pages/admin_side/Manager_Dashboard_Tabs/overview.jsx'
@@ -60,6 +61,14 @@ export default function App() {
         element={
           <Protected allowedRoles={['user']}>
             <VolunteerHist />
+          </Protected>
+        }
+      />
+      <Route
+        path="/events/:id"
+        element={
+          <Protected allowedRoles={['user']}>
+            <EventDetails />
           </Protected>
         }
       />
