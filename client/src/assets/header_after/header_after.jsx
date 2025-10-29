@@ -8,7 +8,7 @@ function HeaderAfter() {
     const navigate = useNavigate();
 
     const header_items = [
-            { title: "Dashboard", link: `/userdash` },
+            { title: "Dashboard", link: `/volunteerdash` },
             { title: "Events", link: `/allevents` },
             { title: "Account", link: `/account` },
             {title: "Volunteer History", link: `/history`}

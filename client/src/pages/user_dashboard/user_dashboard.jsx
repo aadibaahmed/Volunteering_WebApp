@@ -30,7 +30,7 @@ const VolunteerDashboard = () => {
         }
 
         // Simulated API call
-        const response = await axios.get(`${process.env.REACT_APP_API_URL}/volunteer-dashboard`, {
+        const response = await axios.get(`${import.meta.env.VITE_API_BASE}/volunteer-dashboard`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
