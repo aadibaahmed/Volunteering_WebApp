@@ -17,7 +17,7 @@ router.get("/", requireAuth, async (req, res) => {
         e.name AS organization
       FROM volunteer_history h
       JOIN events e ON h.event_id = e.event_id
-      WHERE h.volunteer_id = $1 
+      WHERE h.user_id = $1 
       ORDER BY h.participation_date DESC;
     `;
 

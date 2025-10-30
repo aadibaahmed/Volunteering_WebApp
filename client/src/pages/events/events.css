@@ -1,6 +1,6 @@
 .events-dashboard-page {
   min-height: 100vh;
-  font-family:'Times New Roman', Times, serif;
+  font-family: inherit;
   display: flex;
   flex-direction: column;
   align-items: center;

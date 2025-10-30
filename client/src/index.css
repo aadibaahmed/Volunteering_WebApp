@@ -1,5 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
 :root {
-  font-family:'Times New Roman', Times, serif;
+  font-family: 'Poppins', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
@@ -21,5 +23,11 @@ body {
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  font-family: inherit;
+}
+
+/* Ensure common elements inherit the global font */
+#root, h1, h2, h3, h4, h5, h6, p, a, button, input, textarea, select {
+  font-family: inherit;
 }
 

@@ -17,31 +17,31 @@ router.post("/", async (req, res) => {
       event_date,
       start_time,
       end_time,
+      volunteer_needed = 0,
+      manager_user_id = null,
     } = req.body;
 
     console.log("Received data:", req.body);
 
-    const skillsArray = required_skills.split(',').map(skill => skill.trim());
-    const formattedSkills = `{${skillsArray.join(',')}}`;
+    // `required_skills` is a free-text column in the new schema
 
-    console.log("Formatted skills:", formattedSkills);
     console.log("Urgency:", urgency);
 
     const result = await query(
-      `INSERT INTO events (name, requirements, location, skills, urgency, date, time_start, time_end, volunteer_needed, manager)
+      `INSERT INTO events (name, location, volunteer_needed, time_start, time_end, event_date, manager_user_id, urgency, event_description, required_skills)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        RETURNING *`,
       [
         event_name,
-        event_description,
         location,
-        formattedSkills,
-        urgency,
-        event_date,
+        volunteer_needed,
         start_time,
         end_time,
-        0,
-        null
+        event_date,
+        manager_user_id,
+        urgency,
+        event_description,
+        required_skills,
       ]
     );
 
@@ -69,15 +69,15 @@ router.get("/", async (req, res) => {
       SELECT 
         event_id as id,
         name as "eventName",           
-        requirements as description,   
-        skills,
+        event_description as description,   
+        required_skills,
         urgency,
-        date,
+        event_date,
         time_start as "startTime",     
         time_end as "endTime"         
       FROM events 
-      WHERE date >= CURRENT_DATE 
-      ORDER BY date ASC
+      WHERE event_date >= CURRENT_DATE 
+      ORDER BY event_date ASC
     `); 
     
     console.log("Events fetched:", result.rows);

@@ -11,10 +11,10 @@ export async function event_by_id(req, res) {
       `SELECT 
         event_id AS id,
         name AS "eventName",
-        requirements AS description,
-        skills,
+        event_description AS description,
+        required_skills,
         urgency,
-        date,
+        event_date,
         time_start AS "startTime",
         time_end AS "endTime"
        FROM events

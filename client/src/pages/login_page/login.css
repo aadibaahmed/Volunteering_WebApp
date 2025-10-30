@@ -1,28 +1,48 @@
+/* Homepage color variables */
+:root {
+  --blue: #6A89A7; 
+  --yellow: #FFBB00; 
+  --dark: #2A3642;
+  --linen: #F4EDE4;
+}
+
 html, body {
     height: 100%;
     width: 100%;
     overflow-x: hidden;
-    /* background-image: url('../../assets/extra_assets/volunnnn.jpg');
-    background-size: cover;
-    background-repeat: no-repeat; */
+    background-color: var(--linen);
 }
 
 .Login_Page {
-  background: rgb(182, 53, 53);
+  background: var(--linen);
+}
+
+/* offset for fixed header and center layout similar to homepage */
+.login-main {
+  min-height: 100vh;
+  padding: 8rem 2rem 4rem;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 4rem;
-  border-radius: 1rem;
-  box-shadow: 0 14px 40px rgba(0,0,0,0.20);
+  justify-content: flex-start;
+}
+
+.login-hero {
+  text-align: center;
+  margin-bottom: 2rem;
 }
 
 .welcome {
-  padding-top: 2rem;
-  padding-bottom: 5rem;
-  color: #fff;
-  font-size: 28px;
+  padding: 0;
+  color: var(--dark);
+  font-size: 40px;
   font-weight: 800;
   text-align: center;
+}
+
+.subtitle {
+  margin-top: 0.5rem;
+  color: #39424e;
 }
 
 .Login_Container {
@@ -30,11 +50,13 @@ html, body {
   border: 2px solid #e5e7eb;
   overflow: hidden;
   border-radius: 1rem;
-  box-shadow: 0 14px 40px rgba(0,0,0,0.20);
+  box-shadow: 0 14px 40px rgba(0,0,0,0.12);
+  max-width: 640px;
+  width: 100%;
 }
 
 .login-form {
-  padding: 2rem 4rem;
+  padding: 2rem 2.5rem;
   background-color: #fff;
   border-radius: 1rem;
 }
@@ -43,20 +65,24 @@ html, body {
   display: flex;
   align-items: center;
   padding: 1rem;
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   font-size: 1rem;
-  background-color: #fafafa;
+  background-color: #fff;
   border: 2px solid #e5e7eb;
   transition: border-color .15s, box-shadow .15s;
 }
 
+.Form_Entries + .Form_Entries {
+  margin-top: 1rem;
+}
+
 .Form_Entries:focus-within {
-  border-color: #ef4444;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.363);
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(106, 137, 167, 0.25);
 }
 
 .Form_Entry {
-  color: #0f172a;
+  color: var(--dark);
   font-weight: 700;
   min-width: 80px;
 }
@@ -66,7 +92,7 @@ html, body {
   padding: 0.9rem 1rem;
   border: none;
   border-radius: 0.5rem;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 500;
   background: transparent;
   outline: none;
@@ -74,36 +100,60 @@ html, body {
 
 .LoginPage_Button {
   margin-top: 1.5rem;
-  padding: 0.9rem;
-  background: linear-gradient(180deg, #ef4444, #dc2626);
-  color: #fff;
-  border-radius: 0.75rem;
   display: flex;
-  gap: 2rem;
+  gap: 1rem;
   justify-content: center;
-  box-shadow: 0 4px 14px rgb(46, 4, 4);
+  background: transparent;
 }
 
-.login_button {
+/* Primary (Login) button - force yellow theme */
+.LoginPage_Button .login_button {
   position: relative;
-  padding: 0.7rem 1.5rem;
-  background: linear-gradient(180deg, #ef4444, #dc2626);
-  color: #fff;
+  padding: 0.9rem 1.6rem;
+  background: var(--yellow) !important; /* resets gradients */
+  background-image: none !important;
+  color: var(--dark) !important;
   border: none;
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
-  transition: transform 0.05s, box-shadow 0.15s;
-  box-shadow: 0 4px 14px rgba(220,38,38,.35);
+  transition: transform 0.05s, box-shadow 0.15s, background-color 0.15s, color 0.15s;
+  box-shadow: 0 4px 10px rgba(255, 187, 0, 0.3);
 }
 
-.login_button:hover {
-  box-shadow: 0 8px 20px rgba(220,38,38,.45);
+.LoginPage_Button .login_button:hover {
+  background: #e6a600 !important;
+  background-image: none !important;
+  color: #fff !important;
   transform: translateY(-1px);
-  background-color: #fda4a4;
+  box-shadow: 0 6px 16px rgba(255, 187, 0, 0.4);
 }
 
-.login_button:active {
+.LoginPage_Button .login_button:active {
+  transform: translateY(0);
+}
+
+/* Secondary (Register) outline button to match form shape and colors */
+.outline_button {
+  padding: 0.9rem 1.6rem;
+  border: 2px solid var(--blue);
+  color: var(--blue);
+  background: #fff;
+  border-radius: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s, transform 0.05s, box-shadow 0.15s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.outline_button:hover {
+  background-color: var(--blue);
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(106, 137, 167, 0.35);
+}
+
+.outline_button:active {
   transform: translateY(0);
 }
