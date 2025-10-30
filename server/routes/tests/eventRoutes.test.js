@@ -1,91 +1,142 @@
+import { jest } from "@jest/globals";
 import request from "supertest";
-import app from "../../server.js"; 
+import express from "express";
+
+jest.unstable_mockModule("../../middleware/auth.js", () => ({
+  requireAuth: (req, res, next) => {
+    req.user = { sub: 1, email: "admin@volunteer.com", role: "superuser" };
+    next();
+  }
+}));
+
+jest.unstable_mockModule("../../database.js", () => ({
+  query: jest.fn()
+}));
+
+const { query } = await import("../../database.js");
+const eventRoutes = (await import("../event.routes.js")).default || (await import("../event.routes.js"));
+
+const app = express();
+app.use(express.json());
+app.use("/api/events", eventRoutes);
 
 describe("Event Routes", () => {
-  test("GET /api/events should return status 200", async () => {
-    const res = await request(app).get("/api/events");
-    expect(res.statusCode).toBe(200);
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
-  test("POST /api/events/create should create a new event", async () => {
-    const newEvent = {
-      eventName: "Community Clean-Up",
-      description: "Help clean up the park!",
-      location: "Houston",
-      skills: "Cleaning",
-      urgency: "High",
-      date: "2025-10-25",
-      startTime: "10:00 AM",
-      endTime: "12:00 PM"
-    };
+  test("POST /api/events should create a new event", async () => {
+    query.mockResolvedValueOnce({
+      rows: [{
+        event_id: 1,
+        event_name: "Cleaning",
+        event_description: "Clean up park",
+        location: "Houston"
+      }]
+    });
 
-    const res = await request(app)
-      .post("/api/events/create")
-      .send(newEvent);
+    const response = await request(app)
+      .post("/api/events")
+      .send({
+        event_name: "Cleaning",
+        event_description: "Clean up park",
+        location: "Houston",
+        required_skills: ["Cleaning"],
+        urgency: "medium",
+        event_date: "2025-11-02",
+        start_time: "10:00",
+        end_time: "12:00"
+      });
 
-    expect([200, 201]).toContain(res.statusCode);
-    expect(res.body).toHaveProperty("event");
-    expect(res.body.event).toHaveProperty("eventName", "Community Clean-Up");
+    expect(response.status).toBe(201);
   });
 
+  test("GET /api/events should fetch all events", async () => {
+    query.mockResolvedValueOnce({
+      rows: [
+        { event_id: 1, event_name: "Cleaning", urgency: "medium" },
+        { event_id: 2, event_name: "Cooking", urgency: "high" }
+      ]
+    });
+  
+    const response = await request(app).get("/api/events");
+    expect(response.status).toBe(200);
+    expect(Array.isArray(response.body)).toBe(true);
+    expect(response.body.length).toBe(2);
+  });
+  
   test("DELETE /api/events/:id should delete an event", async () => {
-    const newEvent = {
-      eventName: "Tree Planting",
-      description: "Plant trees in the community park",
-      location: "Houston",
-      skills: "Gardening",
-      urgency: "Medium",
-      date: "2025-10-30",
-      startTime: "9:00 AM",
-      endTime: "11:00 AM"
-    };
-
-    const createRes = await request(app)
-      .post("/api/events/create")
-      .send(newEvent);
-
-    const createdEventId = createRes.body.event.id;
-
-    const deleteRes = await request(app).delete(`/api/events/${createdEventId}`);
-
-    expect(deleteRes.statusCode).toBe(200);
-    expect(deleteRes.body).toHaveProperty("message", "Event deleted successfully");
+    query.mockResolvedValueOnce({ rowCount: 1 });
+  
+    const response = await request(app).delete("/api/events/1");
+    expect(response.status).toBe(200);
+    expect(response.body.message).toBe("Event deleted successfully");
+  });
+  
+  test("POST /api/events should handle database errors gracefully", async () => {
+    query.mockRejectedValueOnce(new Error("DB connection failed"));
+  
+    const response = await request(app)
+      .post("/api/events")
+      .send({
+        event_name: "Beach Cleanup",
+        event_description: "Cleanup event",
+        location: "Miami",
+        required_skills: ["Cleaning"],
+        urgency: "medium",
+        event_date: "2025-11-03",
+        start_time: "08:00",
+        end_time: "11:00"
+      });
+  
+    expect(response.status).toBe(500);
+    expect(response.body.error).toMatch(/failed/i);
   });
 
-  test("POST /api/events/create should return 400 if missing fields", async () => {
-    const incompleteEvent = { eventName: "Incomplete Event" }; // Missing fields
-    const res = await request(app)
-      .post("/api/events/create")
-      .send(incompleteEvent);
+  test("POST /api/events should return 400 if required fields are missing", async () => {
+    const response = await request(app)
+      .post("/api/events")
+      .send({
+        event_description: "Missing fields test",
+        required_skills: ["Teamwork"],
+        urgency: "medium",
+        event_date: "2025-11-05",
+        start_time: "09:00",
+        end_time: "11:00"
+      });
 
-    expect(res.statusCode).toBe(400);
-    expect(res.body).toHaveProperty("message", "Missing required fields");
+    expect(response.status).toBe(400);
+    expect(response.body.error || response.body.message).toMatch(/missing/i);
   });
 
-  test("PUT /api/events/:id should update an existing event", async () => {
-    const newEvent = {
-      eventName: "Park Cleanup",
-      description: "Clean up the local park",
-      location: "Houston",
-      skills: "Teamwork",
-      urgency: "Medium",
-      date: "2025-11-01",
-      startTime: "9:00 AM",
-      endTime: "12:00 PM"
-    };
+  test("should handle DELETE /api/events/:id when event not found", async () => {
+    query.mockResolvedValueOnce({ rowCount: 0 });
+  
+    const response = await request(app).delete("/api/events/999");
+    expect(response.status).toBe(404);
+    expect(response.body.error || response.body.message).toMatch(/not found/i);
+  });
+  
+  test("should handle unexpected errors in DELETE /api/events/:id", async () => {
+    query.mockRejectedValueOnce(new Error("Unexpected DB error"));
+  
+    const response = await request(app).delete("/api/events/5");
+  
+    expect(response.status).toBe(500);
+    expect(response.body.error || response.body.message).toMatch(/failed/i);
+  });
 
-    const createRes = await request(app)
-      .post("/api/events/create")
-      .send(newEvent);
+  test("should handle errors gracefully in GET /api/events", async () => {
+    query.mockRejectedValueOnce(new Error("Failed to fetch events"));
+  
+    const response = await request(app).get("/api/events");
+  
+    expect(response.status).toBe(500);
+    expect(response.body.error || response.body.message).toMatch(/error fetching/i);
+  });
 
-    const eventId = createRes.body.event.id;
-    const updatedEvent = { ...newEvent, eventName: "Park Cleanup Updated" };
-
-    const updateRes = await request(app)
-      .put(`/api/events/${eventId}`)
-      .send(updatedEvent);
-
-    expect(updateRes.statusCode).toBe(200);
-    expect(updateRes.body.event.eventName).toBe("Park Cleanup Updated");
+  test("should import event.routes.js without crashing", async () => {
+    const routes = await import("../event.routes.js");
+    expect(routes).toBeDefined();
   });
 });

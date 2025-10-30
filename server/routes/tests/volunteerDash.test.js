@@ -1,4 +1,4 @@
-const request = require('supertest');
+import request from "supertest";
 import { jest } from '@jest/globals';
 
 // Declare a variable to hold the Express app instance

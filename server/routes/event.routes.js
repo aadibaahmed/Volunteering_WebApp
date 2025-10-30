@@ -1,11 +1,12 @@
 import express from "express";
 import { query } from "../database.js";
+import { requireAuth } from "../middleware/auth.js";
 
 const router = express.Router();
 
 
 //create new event
-router.post("/", async (req, res) => {
+router.post("/", requireAuth, async (req, res) => {
   try {
     console.log("Received new event data:", req.body);
     const {
@@ -20,6 +21,12 @@ router.post("/", async (req, res) => {
     } = req.body;
 
     console.log("Received data:", req.body);
+    // Validate required fields before DB call
+    if (!event_name || !location || !event_date || !start_time || !end_time) {
+      console.error("Missing required fields");
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
     const manager_id = req.user?.id || null;
     const skillsArray = Array.isArray(required_skills)
       ? required_skills
@@ -95,14 +102,19 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
-    await query("DELETE FROM events WHERE event_id=$1", [id]);
-    res.json({ message: "Event deleted successfully" });
+    const result = await query("DELETE FROM events WHERE event_id = $1", [id]);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+
+    res.status(200).json({ message: "Event deleted successfully" });
   } catch (err) {
     console.error("Error deleting event:", err);
-    res.status(500).json({ message: "Error deleting event" });
+    res.status(500).json({ error: "Failed to delete event" });
   }
 });
 
