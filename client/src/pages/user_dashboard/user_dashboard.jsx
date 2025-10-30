@@ -30,7 +30,7 @@ const VolunteerDashboard = () => {
         }
 
         // Simulated API call
-        const response = await axios.get(`${import.meta.env.VITE_API_BASE}/volunteer-dashboard`, {
+        const response = await axios.get(`/api/volunteer-dashboard`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -43,12 +43,21 @@ const VolunteerDashboard = () => {
         setPendingApprovals(data.pendingApprovals);
         setTotalHours(data.totalHours);
 
-      } catch (error) {
-        console.error("Error fetching volunteer dashboard data:", error);
+      } catch (e) {
+        // --- IMPROVED ERROR HANDLING BASED ON BACKEND RESPONSE ---
+        if (e.response && e.response.status === 404) {
+             setError("Volunteer profile not found. Please contact support.");
+        } else if (e.response && e.response.status === 500) {
+             setError("Server error fetching dashboard. Please try again later.");
+        } else {
+             setError("Could not connect to the service.");
+        }
+        console.error("Error fetching volunteer dashboard data:", e);
       } finally {
         setLoading(false);
       }
     };
+
 
     fetchDashboardData();
   }, []);
@@ -109,7 +118,7 @@ const VolunteerDashboard = () => {
                 <div className="stat-icon"><FaChartBar /></div>
                 <div className="stat-content">
                   <h3>Total Hours Volunteered</h3>
-                  <p className="stat-value">{totalHours.toLocaleString()} hrs</p>
+                  <p className="stat-value">{totalHours.toLocaleString(undefined, { maximumFractionDigits: 1 })} hrs</p>
                 </div>
               </div>
 
