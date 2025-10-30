@@ -138,7 +138,7 @@ const VolunteerDashboard = () => {
                 </div>
 
                 <div className="quick-actions">
-                  <Link to="/events" className="action-button">
+                  <Link to="/allevents" className="action-button">
                     <FaCalendarAlt className="icon" />
                     <span>View Events</span>
                   </Link>

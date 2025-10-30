@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>12/12</span>
+                <span class='fraction'>0/11</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>6/6</span>
+                <span class='fraction'>0/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>1/1</span>
+                <span class='fraction'>0/1</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>12/12</span>
+                <span class='fraction'>0/11</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -104,17 +104,14 @@
 <a name='L39'></a><a href='#L39'>39</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">6x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -124,32 +121,35 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import express from "express";
 import { pool } from "../database.js"; // your PostgreSQL connection pool
+import { requireAuth } from "../middleware/auth.js"; // Adjust path as necessary if auth.js is in another folder
 &nbsp;
-const router = express.Router();
+const router = <span class="cstat-no" title="statement not covered" >express.Router();</span>
 &nbsp;
 // GET volunteer history (optionally filtered by volunteer_id)
-router.get("/", async (req, res) =&gt; {
-  const { volunteer_id } = req.query; // optional query param
-&nbsp;
-  try {
-    const query = `
+<span class="cstat-no" title="statement not covered" >router.get("/", requireAuth, <span class="fstat-no" title="function not covered" >as</span>ync (req, res) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >  try {</span>
+    const volunteerId = <span class="cstat-no" title="statement not covered" >req.user.sub;</span>
+    const query = <span class="cstat-no" title="statement not covered" >`</span>
       SELECT 
         h.history_id AS id,
         h.participation_date AS start,
@@ -158,33 +158,33 @@ router.get("/", async (req, res) =&gt; {
         e.name AS organization
       FROM volunteer_history h
       JOIN events e ON h.event_id = e.event_id
-      ${volunteer_id ? "WHERE h.volunteer_id = $1" : ""}
+      WHERE h.volunteer_id = $1 
       ORDER BY h.participation_date DESC;
     `;
 &nbsp;
-    const params = volunteer_id ? [volunteer_id] : [];
-    const result = await pool.query(query, params);
+    const result = <span class="cstat-no" title="statement not covered" >await pool.query(query, [volunteerId]);</span>
 &nbsp;
     // if no results, return a friendly message
-    if (result.rows.length === 0) {
-      return res.json({ message: "No volunteer history found." });
+<span class="cstat-no" title="statement not covered" >    if (result.rows.length === 0) {</span>
+<span class="cstat-no" title="statement not covered" >      return res.json({ message: "No volunteer history found." });</span>
     }
 &nbsp;
-    res.json(result.rows);
+<span class="cstat-no" title="statement not covered" >    res.json(result.rows);</span>
   } catch (err) {
-    console.error("Error fetching volunteer history:", err);
-    res.status(500).json({ error: "Failed to fetch volunteer history" });
+<span class="cstat-no" title="statement not covered" >    console.error("Error fetching volunteer history:", err);</span>
+<span class="cstat-no" title="statement not covered" >    res.status(500).json({ error: "Failed to fetch volunteer history" });</span>
   }
 });
 &nbsp;
-export default router;</pre></td></tr></table></pre>
+export default router;
+&nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-10-18T04:02:48.744Z
+                at 2025-10-30T06:54:44.893Z
             </div>
         <script src="prettify.js"></script>
         <script>
