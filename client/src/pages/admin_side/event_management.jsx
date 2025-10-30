@@ -25,16 +25,18 @@ function EventManagement() {
       alert("Please fill out all required fields.");
       return;
     }
+    
     const formData = {
       event_name: eventName,
       event_description: eventDescription,
-      location,
-      required_skills: Array.isArray(skills) ? skills.join(", ") : skills,
-      urgency,
+      location: location,
+      required_skills: skills,
+      urgency: urgency,
       event_date: eventDate,
       start_time: startTime,
       end_time: endTime,
     };
+    
 
     console.log("Sending data:", formData); 
 

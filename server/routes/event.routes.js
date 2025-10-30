@@ -20,30 +20,37 @@ router.post("/", async (req, res) => {
     } = req.body;
 
     console.log("Received data:", req.body);
+    const manager_id = req.user?.id || null;
+    const skillsArray = Array.isArray(required_skills)
+      ? required_skills
+      : required_skills.split(',').map(skill => skill.trim());
 
-    const skillsArray = required_skills.split(',').map(skill => skill.trim());
-    const formattedSkills = `{${skillsArray.join(',')}}`;
+    const formattedSkills = skillsArray.join(', ');
+
 
     console.log("Formatted skills:", formattedSkills);
     console.log("Urgency:", urgency);
+    const urgencyValue = urgency.toLowerCase();
 
     const result = await query(
-      `INSERT INTO events (name, requirements, location, skills, urgency, date, time_start, time_end, volunteer_needed, manager)
+      `INSERT INTO events (name, required_skills, event_description, location, urgency, event_date, time_start, time_end, volunteer_needed, manager_user_id)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        RETURNING *`,
       [
         event_name,
+        formattedSkills,
         event_description,
         location,
-        formattedSkills,
-        urgency,
+        urgencyValue,
         event_date,
         start_time,
         end_time,
         0,
-        null
+        manager_id
       ]
     );
+    
+    
 
     console.log("Full result:", result);
     console.log("Event created successfully:", result.rows[0]);
@@ -70,9 +77,9 @@ router.get("/", async (req, res) => {
         event_id as id,
         name as "eventName",           
         requirements as description,   
-        skills,
+        required_skills,
         urgency,
-        date,
+        event_date,
         time_start as "startTime",     
         time_end as "endTime"         
       FROM events 
