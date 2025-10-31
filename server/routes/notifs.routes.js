@@ -1,7 +1,7 @@
 import express from 'express';
 import { requireAuth } from '../middleware/auth.js';
 import {
-  getNotifications,
+  // getNotifications,
   getNotificationsForUser,
   // getUnreadNotificationsForUser,
   // createNotification,
