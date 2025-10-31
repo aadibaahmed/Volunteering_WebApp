@@ -14,7 +14,6 @@ import ManagerDashboard from './pages/admin_side/manager_dashboard.jsx';
 import EventDetails from './pages/events/view_event.jsx'
 
 // for the manager dashboard
-import OverViewTab from './pages/admin_side/Manager_Dashboard_Tabs/overview.jsx'
 import VolunteerCheck from './pages/admin_side/Manager_Dashboard_Tabs/volunteer_check.jsx'
 import ManagerEvents from './pages/admin_side/Manager_Dashboard_Tabs/manager_events.jsx'
 import ManagerVolunteerMatch from './pages/admin_side/Manager_Dashboard_Tabs/volunteer_matching_manager.jsx'
@@ -94,14 +93,6 @@ export default function App() {
 />
 
 {/* MANAGER DASHBOARD TABS */}
-      <Route
-        path="/managerdash/overview"
-        element={
-          <Protected allowedRoles={['superuser']}>
-            <OverViewTab />
-          </Protected>
-        }
-      />
       <Route
         path="/managerdash/volunteers"
         element={
