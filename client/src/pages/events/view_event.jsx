@@ -67,9 +67,7 @@ function EventDetails() {
         <div className="event-info">
           <p><strong>Urgency:</strong> {event.urgency}</p>
           <p><strong>Skills Required:</strong> 
-            {Array.isArray(event.skills)
-              ? event.skills.join(', ')
-              : event.skills?.replace(/[{}]/g, '').split(',').join(', ')}
+            {event.skills}
           </p>
           <p><strong>Date:</strong> {new Date(event.date).toLocaleDateString()}</p>
           <p><strong>Start:</strong> {event.startTime}</p>

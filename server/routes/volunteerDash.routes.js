@@ -89,4 +89,3 @@ router.get('/', requireAuth, async (req, res) => {
 
 export default router;
 
-

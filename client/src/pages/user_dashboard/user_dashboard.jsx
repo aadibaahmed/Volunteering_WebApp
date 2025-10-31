@@ -15,6 +15,7 @@ const VolunteerDashboard = () => {
   const [activeOpportunities, setActiveOpportunities] = useState(0);
   const [pendingApprovals, setPendingApprovals] = useState(0); // unread notifications
   const [totalHours, setTotalHours] = useState(0);
+  const [error, setError] = useState(null);
 
   const [loading, setLoading] = useState(false);
 
@@ -59,12 +60,13 @@ const VolunteerDashboard = () => {
         // Total hours volunteered
         setTotalHours(Number(stats.totalHours || 0));
 
-      } catch (error) {
-        console.error("Error fetching volunteer dashboard data:", error);
+      } catch (e) {
+        console.error("Error fetching volunteer dashboard data:", e);
       } finally {
         setLoading(false);
       }
     };
+
 
     fetchDashboardData();
   }, [navigate]);
@@ -125,7 +127,7 @@ const VolunteerDashboard = () => {
                 <div className="stat-icon"><FaChartBar /></div>
                 <div className="stat-content">
                   <h3>Total Hours Volunteered</h3>
-                  <p className="stat-value">{Number(totalHours || 0).toLocaleString()} hrs</p>
+                  <p className="stat-value">{totalHours.toLocaleString(undefined, { maximumFractionDigits: 1 })} hrs</p>
                 </div>
               </div>
 
@@ -145,7 +147,7 @@ const VolunteerDashboard = () => {
                 </div>
 
                 <div className="quick-actions">
-                  <Link to="/events" className="action-button">
+                  <Link to="/allevents" className="action-button">
                     <FaCalendarAlt className="icon" />
                     <span>View Events</span>
                   </Link>
