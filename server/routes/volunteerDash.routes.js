@@ -1,83 +1,98 @@
 import express from "express";
-import { pool } from "../database.js"; // Your PostgreSQL connection pool
-import { requireAuth } from "../middleware/auth.js"; // Authentication middleware
+import { pool } from "../database.js";
+import { requireAuth } from "../middleware/auth.js";
 
 const router = express.Router();
 
-/**
- * @route GET /volunteer-dashboard
- * @desc Get all dashboard statistics for the currently authenticated volunteer.
- * Requires a valid JWT (checked by requireAuth).
- * @access Private
- */
-router.get("/volunteer-dashboard", requireAuth, async (req, res) => {
-    // The volunteer's ID is expected to be in the 'sub' field of the decoded JWT payload.
-    const volunteerId = req.user.sub; 
+router.get("/", requireAuth, async (req, res) => {
+  const userId = req.user.sub;
+  const firstNameFromToken = req.user.first_name || "Volunteer";
+  const lastNameFromToken = req.user.last_name || "User";
 
+  let totalHours = 0;
+  let totalVolunteers = 0;
+  let pendingApprovals = 0;
+  let firstName = firstNameFromToken;
+  let lastName = lastNameFromToken;
+  let upcomingEventsForUser = 0;
+  let activeOpportunities = 0;
+
+  try {
+    // 1️⃣ Count all active opportunities
     try {
-        // --- 1. Get Volunteer Profile Data (First Name and Last Name) ---
-        // Uses 'id' from the volunteers table which should match req.user.sub
-        const userQuery = await pool.query(
-            'SELECT first_name, last_name FROM volunteers WHERE id = $1',
-            [volunteerId]
-        );
-        const user = userQuery.rows[0];
-
-        if (!user) {
-            return res.status(404).json({ msg: 'Volunteer profile not found for this user.' });
-        }
-
-        // --- 2. Fetch All Dashboard Metrics in Parallel using Promise.all ---
-        const [
-            hoursResult,
-            completedEventsResult,
-            allFutureEventsResult,
-            pendingSignupsResult
-        ] = await Promise.all([
-            // A. Total Hours Volunteered: Sums all logged hours.
-            pool.query(
-                'SELECT COALESCE(SUM(hours_served), 0) AS "totalHours" FROM volunteer_history WHERE volunteer_id = $1',
-                [volunteerId]
-            ),
-
-            // B. Events Volunteered (Maps to totalVolunteers in React state): Counts unique completed events.
-            pool.query(
-                'SELECT COUNT(DISTINCT event_id) AS "eventsVolunteered" FROM volunteer_history WHERE volunteer_id = $1',
-                [volunteerId]
-            ),
-
-            // C. Total Upcoming/Active Events (Active Opportunities and totalEvents): Counts all future events.
-            pool.query(
-                'SELECT COUNT(*) AS "activeOpportunities" FROM events WHERE date >= CURRENT_DATE'
-            ),
-
-            // D. Pending Sign-ups: Uses the new Volunteer_Signups table where status is 'SignedUp'.
-            pool.query(
-                'SELECT COUNT(*) AS "pendingApprovals" FROM Volunteer_Signups WHERE volunteer_id = $1 AND signup_status = $2',
-                [volunteerId, 'SignedUp']
-            ),
-        ]);
-
-        // --- 3. Compile and Send Response ---
-        const dashboardData = {
-            firstName: user.first_name,
-            lastName: user.last_name,
-            // Convert to number; use parseFloat for hours
-            totalHours: parseFloat(hoursResult.rows[0].totalHours),
-            // Convert to integer
-            totalVolunteers: parseInt(completedEventsResult.rows[0].eventsVolunteered, 10), 
-            // totalEvents and activeOpportunities are the same metric (total number of opportunities)
-            totalEvents: parseInt(allFutureEventsResult.rows[0].activeOpportunities, 10), 
-            activeOpportunities: parseInt(allFutureEventsResult.rows[0].activeOpportunities, 10),
-            pendingApprovals: parseInt(pendingSignupsResult.rows[0].pendingApprovals, 10),
-        };
-
-        res.json(dashboardData);
-
+      const result = await pool.query(
+        'SELECT COUNT(*) AS "activeOpportunities" FROM events WHERE event_date >= CURRENT_DATE'
+      );
+      if (result.rows?.length > 0) {
+        activeOpportunities = parseInt(result.rows[0].activeOpportunities || "0", 10);
+      }
     } catch (err) {
-        console.error('Dashboard Route Error:', err.message);
-        res.status(500).json({ error: 'Failed to fetch volunteer dashboard data.' });
+      console.error("SQL Error (active opportunities):", err.message);
+      activeOpportunities = 0;
     }
+
+    // 2️⃣ Get user profile
+    const profileQuery = await pool.query(
+      `SELECT uc.user_id, up.first_name, up.last_name
+         FROM user_credentials uc
+         LEFT JOIN user_profile up ON uc.user_id = up.user_id
+        WHERE uc.user_id = $1`,
+      [userId]
+    );
+    const profile = profileQuery.rows[0];
+
+    if (profile) {
+      firstName = profile.first_name || firstNameFromToken;
+      lastName = profile.last_name || lastNameFromToken;
+
+      // 3️⃣ Get personal stats
+      const [hoursResult, completedEvents, pending, upcoming] = await Promise.all([
+        pool.query(
+          'SELECT COALESCE(SUM(hours_served), 0) AS "totalHours" FROM volunteer_history WHERE user_id = $1',
+          [userId]
+        ),
+        pool.query(
+          'SELECT COUNT(DISTINCT event_id) AS "eventsVolunteered" FROM volunteer_history WHERE user_id = $1',
+          [userId]
+        ),
+        pool.query(
+          'SELECT COUNT(*) AS "pendingApprovals" FROM volunteer_signups WHERE user_id = $1 AND signup_status = $2',
+          [userId, "SignedUp"]
+        ),
+        pool.query(
+          `SELECT COUNT(DISTINCT vs.event_id) AS "upcoming"
+           FROM volunteer_signups vs
+           JOIN events e ON vs.event_id = e.event_id
+          WHERE vs.user_id = $1 AND e.event_date >= CURRENT_DATE`,
+          [userId]
+        ),
+      ]);
+
+      totalHours = parseFloat(hoursResult.rows[0].totalHours || "0");
+      totalVolunteers = parseInt(completedEvents.rows[0].eventsVolunteered || "0", 10);
+      pendingApprovals = parseInt(pending.rows[0].pendingApprovals || "0", 10);
+      upcomingEventsForUser = parseInt(upcoming.rows[0].upcoming || "0", 10);
+    }
+
+    // 4️⃣ Return consistent response
+    res.status(200).json({
+      firstName,
+      lastName,
+      totalHours,
+      totalVolunteers,
+      totalEvents: upcomingEventsForUser,
+      activeOpportunities,
+      pendingApprovals,
+    });
+  } catch (err) {
+    console.error("Dashboard Route Error (Fatal):", err.message);
+    res
+      .status(500)
+      .json({
+        error:
+          "Failed to fetch volunteer dashboard data due to a critical server error.",
+      });
+  }
 });
 
 export default router;

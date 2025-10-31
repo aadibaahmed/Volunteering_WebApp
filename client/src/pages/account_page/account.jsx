@@ -8,6 +8,8 @@ import 'react-day-picker/dist/style.css';
 import { api } from '../../lib/api';
 import './account.css';
 import { useNavigate } from 'react-router-dom';
+import Header from '../../assets/header_after/header_after';
+
 
 const STATES = ["AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"];
 const SKILLS = ["First Aid","CPR","Teaching","Event Setup","Food Service","Crowd Control","Logistics"].map(s => ({ label:s, value:s }));
@@ -103,7 +105,6 @@ const onSubmit = async (data) => {
   return (
     <div className="account-form">
       <h1>Complete Your Profile</h1>
-
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="section-header">General Information</div>
         

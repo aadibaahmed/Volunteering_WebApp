@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import "./volunteerHist.css";
 import Header from "../../assets/header_after/header_after";
 import axios from "axios";
+import { Link } from "react-router-dom";
 
 export default function VolunteerHist() {
   const [volunteerHistory, setVolunteerHistory] = useState([]);
@@ -95,7 +96,7 @@ export default function VolunteerHist() {
         <h1 className="timeline-title">Volunteer History</h1>
 
         {volunteerHistory.length === 0 ? (
-          <div className="timeline-content sage-box no-history">
+          <div className="timeline-content-box no-history"> 
             <p>No previous volunteer history.</p>
             <p>Get Started Today!</p>
           </div>
@@ -104,7 +105,7 @@ export default function VolunteerHist() {
             {volunteerHistory.map((item, index) => (
               <div key={item.id || index} className="timeline-item">
                 <div className="timeline-dot" />
-                <div className="timeline-content sage-box">
+                <div className="timeline-content-box"> 
                   <span className="timeline-date">
                     {item.start && item.end
                       ? `${formatDateTime(item.start)} – ${formatDateTime(item.end)}`
@@ -123,6 +124,11 @@ export default function VolunteerHist() {
           </div>
         )}
       </div>
+      <div className="timeline-footer-action">
+          <Link to="/allevents" className="action-button-timeline">
+            Find Volunteer Opportunities
+          </Link>
+        </div>
     </>
   );
 }
