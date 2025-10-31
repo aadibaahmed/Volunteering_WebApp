@@ -55,10 +55,7 @@
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
-/* Timeline content (text inside sage box) */
-.timeline-content {
-  /* No background here since sage-box handles it */
-}
+
 
 /* Timeline text styling */
 .timeline-date {
