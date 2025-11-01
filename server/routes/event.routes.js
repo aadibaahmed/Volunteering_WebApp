@@ -182,6 +182,38 @@ router.put("/:id", requireAuth, async (req, res) => {
   }
 });
 
+router.put("/:id/volunteers", async (req, res) => {
+  const { id } = req.params;
+  const { volunteer_ids } = req.body; 
+
+  if (!Array.isArray(volunteer_ids)) {
+    return res.status(400).json({ error: "volunteer_ids must be an array" });
+  }
+
+  try {
+    const result = await query(
+      `UPDATE events
+       SET volunteer_ids = $1
+       WHERE event_id = $2
+       RETURNING *`,
+      [volunteer_ids, id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    res.status(200).json({
+      message: "Volunteers updated successfully",
+      event: result.rows[0],
+    });
+  } catch (err) {
+    console.error("Error updating volunteers:", err);
+    res.status(500).json({ error: "Failed to update volunteers" });
+  }
+});
+
+
 router.delete("/:id", requireAuth, async (req, res) => {
   try {
     const { id } = req.params;

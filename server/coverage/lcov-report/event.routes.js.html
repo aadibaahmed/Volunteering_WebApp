@@ -26,6 +26,9 @@
                 <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
                 <span class='fraction'>53/53</span>
+                <span class="strong">98% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>49/50</span>
             </div>
         
             
@@ -33,6 +36,9 @@
                 <span class="strong">93.54% </span>
                 <span class="quiet">Branches</span>
                 <span class='fraction'>29/31</span>
+                <span class="strong">88.23% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>15/17</span>
             </div>
         
             
@@ -40,6 +46,9 @@
                 <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
                 <span class='fraction'>6/6</span>
+                <span class="strong">80% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>4/5</span>
             </div>
         
             
@@ -47,6 +56,9 @@
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
                 <span class='fraction'>53/53</span>
+                <span class="strong">98% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>49/50</span>
             </div>
         
             
@@ -264,6 +276,7 @@
 <a name='L199'></a><a href='#L199'>199</a>
 <a name='L200'></a><a href='#L200'>200</a>
 <a name='L201'></a><a href='#L201'>201</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L153'></a><a href='#L153'>153</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -443,6 +456,38 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -647,6 +692,38 @@ router.put("/:id", requireAuth, async (req, res) =&gt; {
   }
 });
 &nbsp;
+router.put("/:id/volunteers", async (req, res) =&gt; {
+  const { id } = req.params;
+  const { volunteer_ids } = req.body; 
+&nbsp;
+  if (!Array.isArray(volunteer_ids)) {
+    return res.status(400).json({ error: "volunteer_ids must be an array" });
+  }
+&nbsp;
+  try {
+    const result = await query(
+      `UPDATE events
+       SET volunteer_ids = $1
+       WHERE event_id = $2
+       RETURNING *`,
+      [volunteer_ids, id]
+    );
+&nbsp;
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+&nbsp;
+    res.status(200).json({
+      message: "Volunteers updated successfully",
+      event: result.rows[0],
+    });
+  } catch (err) {
+    console.error("Error updating volunteers:", err);
+    res.status(500).json({ error: "Failed to update volunteers" });
+  }
+});
+&nbsp;
+&nbsp;
 router.delete("/:id", requireAuth, async (req, res) =&gt; {
   try {
     const { id } = req.params;
@@ -671,6 +748,7 @@ export default router;</pre></td></tr></table></pre>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
                 at 2025-11-01T02:38:46.109Z
+                at 2025-11-01T00:26:19.957Z
             </div>
         <script src="prettify.js"></script>
         <script>
