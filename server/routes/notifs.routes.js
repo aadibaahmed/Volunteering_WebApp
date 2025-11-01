@@ -13,19 +13,19 @@ import {
 
 const router = express.Router();
 
-router.get('/notifications', requireAuth, async (req, res) => {
-  try {
-    if (req.user.role !== 'superuser') {
-      return res.status(403).json({ error: 'Access denied' });
-    }
+// router.get('/notifications', requireAuth, async (req, res) => {
+//   try {
+//     if (req.user.role !== 'superuser') {
+//       return res.status(403).json({ error: 'Access denied' });
+//     }
 
-    const notifications = await getNotifications();
-    res.json(notifications);
-  } catch (error) {
-    console.error('Error getting all notifications:', error);
-    res.status(500).json({ error: 'Failed to fetch notifications' });
-  }
-});
+//     const notifications = await getNotifications();
+//     res.json(notifications);
+//   } catch (error) {
+//     console.error('Error getting all notifications:', error);
+//     res.status(500).json({ error: 'Failed to fetch notifications' });
+//   }
+// });
 
 // router.post('/create', requireAuth, async (req, res) => {
 //   try {
