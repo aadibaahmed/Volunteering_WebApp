@@ -29,6 +29,9 @@ function EventDetails() {
   const handleSignUp = async () => {
     try {
       const token = localStorage.getItem("token");
+      const user =  JSON.parse(localStorage.getItem("user"));
+
+      const user_id = user.id;
 
       if (!token) {
         alert("You must be logged in to sign up for an event.");
@@ -37,12 +40,12 @@ function EventDetails() {
       }
       const res = await api.post(
         `/events/signup/${id}`,
-        {},
+        {id, user_id},
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       alert("Successfully signed up!");
-      navigate('/events');
+      navigate('/allevents');
     } catch (err) {
       console.error("Sign up failed:", err);
       if (err.response?.status === 401) {
