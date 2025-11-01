@@ -23,7 +23,7 @@ function Header() {
     ];
 
     const superuserHeaderItems = [
-        { title: "Overview", link: `/managerdash/overview` },
+        { title: "Overview", link: `/managerdash` },
         { title: "Volunteers", link: `/managerdash/volunteers` },
         { title: "Events", link: `/managerdash/events` },
         { title: "Matching", link: `/managerdash/matching` },

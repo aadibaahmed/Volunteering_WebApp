@@ -96,7 +96,7 @@ const onSubmit = async (data) => {
     const u = JSON.parse(localStorage.getItem('user') || '{}');
     localStorage.setItem('user', JSON.stringify({ ...u, completed: true }));
     alert('Profile saved!');
-    navigate('/userdash');
+    navigate('/volunteerdash');
   } catch (err) {
     console.error('Error saving profile:', err);
     alert('Failed to save profile: ' + (err.response?.data?.error || err.message));

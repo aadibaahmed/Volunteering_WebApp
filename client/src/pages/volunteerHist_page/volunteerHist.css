@@ -1,5 +1,5 @@
 *{
-  font-family:'Times New Roman', Times, serif;
+  font-family: inherit;
 }
 /* Outer white box (Keep this mostly the same, standard white card) */
 .timeline-container-outer {

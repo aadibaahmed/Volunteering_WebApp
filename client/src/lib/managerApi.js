@@ -83,6 +83,59 @@ export const volunteerApi = {
     });
     if (!response.ok) throw new Error('Failed to fetch my history');
     return response.json();
+  },
+
+  // Create new volunteer
+  createVolunteer: async (volunteerData) => {
+    const response = await fetch(`${API_BASE_URL}/volunteers`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(volunteerData)
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to create volunteer');
+    }
+    return response.json();
+  },
+
+  // Update volunteer
+  updateVolunteer: async (volunteerId, volunteerData) => {
+    const response = await fetch(`${API_BASE_URL}/volunteers/${volunteerId}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(volunteerData)
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to update volunteer');
+    }
+    return response.json();
+  },
+
+  // Delete volunteer (deactivate)
+  deleteVolunteer: async (volunteerId) => {
+    const response = await fetch(`${API_BASE_URL}/volunteers/${volunteerId}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to delete volunteer');
+    }
+    return response.json();
+  },
+
+  // Get volunteer profile
+  getVolunteerProfile: async (volunteerId) => {
+    const response = await fetch(`${API_BASE_URL}/volunteers/${volunteerId}/profile`, {
+      headers: getAuthHeaders()
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to fetch volunteer profile');
+    }
+    return response.json();
   }
 };
 

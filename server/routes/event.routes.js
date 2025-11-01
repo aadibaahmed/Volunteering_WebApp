@@ -18,6 +18,8 @@ router.post("/", requireAuth, async (req, res) => {
       event_date,
       start_time,
       end_time,
+      volunteer_needed = 0,
+      manager_user_id = null,
     } = req.body;
 
     console.log("Received data:", req.body);
@@ -34,8 +36,8 @@ router.post("/", requireAuth, async (req, res) => {
 
     const formattedSkills = skillsArray.join(', ');
 
+    // `required_skills` is a free-text column in the new schema
 
-    console.log("Formatted skills:", formattedSkills);
     console.log("Urgency:", urgency);
     const urgencyValue = urgency.toLowerCase();
 
@@ -52,7 +54,7 @@ router.post("/", requireAuth, async (req, res) => {
         event_date,
         start_time,
         end_time,
-        0,
+        volunteer_needed,
         manager_id
       ]
     );
@@ -81,17 +83,18 @@ router.get("/", async (req, res) => {
   try {
     const result = await query(`
       SELECT 
-        event_id as id,
+        event_id as "id",
         name as "eventName",           
-        requirements as description,   
-        required_skills,
+        event_description as "description",
+        location,
+        required_skills as "skills",
         urgency,
-        event_date,
+        event_date as "date",
         time_start as "startTime",     
-        time_end as "endTime"         
+        time_end as "endTime",
+        volunteer_needed as "volunteerNeeded"
       FROM events 
-      WHERE date >= CURRENT_DATE 
-      ORDER BY date ASC
+      ORDER BY event_date ASC
     `); 
     
     console.log("Events fetched:", result.rows);
@@ -99,6 +102,83 @@ router.get("/", async (req, res) => {
   } catch (err) {
     console.error("Error fetching events:", err);
     res.status(500).json({ message: "Error fetching events" });
+  }
+});
+
+// Update event
+router.put("/:id", requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      event_name,
+      event_description,
+      location,
+      required_skills,
+      urgency,
+      event_date,
+      start_time,
+      end_time,
+      volunteer_needed = 0,
+    } = req.body;
+
+    // Validate required fields
+    if (!event_name || !location || !event_date || !start_time || !end_time) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    // Format skills
+    const skillsArray = Array.isArray(required_skills)
+      ? required_skills
+      : typeof required_skills === 'string' 
+        ? required_skills.split(',').map(skill => skill.trim())
+        : [];
+    
+    const formattedSkills = skillsArray.join(', ');
+
+    // Format urgency
+    const urgencyValue = urgency ? urgency.toLowerCase() : 'low';
+
+    const result = await query(
+      `UPDATE events 
+       SET name = $1, 
+           required_skills = $2, 
+           event_description = $3, 
+           location = $4, 
+           urgency = $5, 
+           event_date = $6, 
+           time_start = $7, 
+           time_end = $8, 
+           volunteer_needed = $9
+       WHERE event_id = $10
+       RETURNING *`,
+      [
+        event_name,
+        formattedSkills,
+        event_description,
+        location,
+        urgencyValue,
+        event_date,
+        start_time,
+        end_time,
+        volunteer_needed,
+        id
+      ]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+
+    res.status(200).json({
+      message: "Event updated successfully!",
+      event: result.rows[0]
+    });
+  } catch (err) {
+    console.error("Error updating event:", err);
+    res.status(500).json({ 
+      message: "Error updating event",
+      error: err.message
+    });
   }
 });
 
