@@ -1,10 +1,11 @@
 import './register.css'
 import { useState } from "react";
 import { api } from '../../lib/api';
-
-
+import HeaderBefore from '../../assets/header_before/header_before';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function Register() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
@@ -19,6 +20,7 @@ export default function Register() {
     setErrors(e);
     return Object.keys(e).length === 0;
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSuccessMsg("");
@@ -27,9 +29,9 @@ export default function Register() {
 
     try {
       await api.post('/auth/register', { email, password });
-      setSuccessMsg("Registration successful! Please log in.");
-      setEmail("");
-      setPassword("");
+      setSuccessMsg("Registration successful! Please log in to complete your profile.");
+      // Redirect to login so the user signs in before profile completion
+      navigate('/login');
     } catch (err) {
       setErrors(prev => ({
         ...prev,
@@ -39,28 +41,42 @@ export default function Register() {
   };
 
   return (
-    <div className="auth-wrapper">
-      <form className="card" onSubmit={handleSubmit} noValidate>
-        <h1>User Registration</h1>
-
-        {errors.form && <div className="notice error">{errors.form}</div>}
-        {successMsg && <div className="notice ok">{successMsg}</div>}
-
-        <div className="inner-box">
-          <label htmlFor="email">Email </label>
-          <input id="email" type="email" placeholder="you@example.com" maxLength={255}
-                 value={email} onChange={(e) => setEmail(e.target.value)} required />
-          {errors.email && <div className="error">{errors.email}</div>}
-
-          <label htmlFor="password">Password</label>
-          <input id="password" type="password" placeholder="••••••••" minLength={8} maxLength={12}
-                 value={password} onChange={(e) => setPassword(e.target.value)} required />
-          {errors.password && <div className="error">{errors.password}</div>}
-
-          <button className = "Register_button" type="submit">Register</button>
+    <div className="Register_Page">
+      <HeaderBefore />
+      <main className="register-main">
+        <div className="register-hero">
+          <h1 className="welcome">Create Your Account</h1>
+          <p className="subtitle">Join our community and start making an impact</p>
         </div>
-        <p className="muted">Already have an account? <a href="/login"> Log in</a></p>
-      </form>
+
+        <div className="Register_Container">
+          <form className="register-form" onSubmit={handleSubmit} noValidate>
+            {errors.form && <div className="notice error">{errors.form}</div>}
+            {successMsg && <div className="notice ok">{successMsg}</div>}
+
+            <div className="Form_Entries">
+              <label className="Form_Entry" htmlFor="email">Email</label>
+              <input id="email" type="email" placeholder="Enter Your Email" maxLength={255}
+                     value={email} onChange={(e) => setEmail(e.target.value)} required />
+            </div>
+            {errors.email && <div className="error-text">{errors.email}</div>}
+
+            <div className="Form_Entries">
+              <label className="Form_Entry" htmlFor="password">Password</label>
+              <input id="password" type="password" placeholder="Enter Your Password" minLength={8} maxLength={12}
+                     value={password} onChange={(e) => setPassword(e.target.value)} required />
+            </div>
+            {errors.password && <div className="error-text">{errors.password}</div>}
+
+            <div className="RegisterPage_Button">
+              <button className="register_button" type="submit">Register</button>
+              <Link to="/login">
+                <button type="button" className="outline_button">Login</button>
+              </Link>
+            </div>
+          </form>
+        </div>
+      </main>
     </div>
   );
 }

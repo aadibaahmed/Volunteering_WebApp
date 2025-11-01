@@ -1,19 +1,21 @@
 import { useState, useEffect } from "react";
 import { FaHandsHelping, FaCalendarAlt, FaUsers, FaChartBar, FaHandHoldingHeart } from 'react-icons/fa';
 import axios from "axios";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import './user_dashboard.css'
 import Header from '../../assets/header_after/header_after'
 
 const VolunteerDashboard = () => {
+  const navigate = useNavigate();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
 
-  const [totalVolunteers, setTotalVolunteers] = useState(0);
-  const [totalEvents, setTotalEvents] = useState(0);
+  const [totalVolunteers, setTotalVolunteers] = useState(0); // events volunteered
+  const [totalEvents, setTotalEvents] = useState(0); // upcoming events
   const [activeOpportunities, setActiveOpportunities] = useState(0);
-  const [pendingApprovals, setPendingApprovals] = useState(0);
+  const [pendingApprovals, setPendingApprovals] = useState(0); // unread notifications
   const [totalHours, setTotalHours] = useState(0);
+  const [error, setError] = useState(null);
 
   const [loading, setLoading] = useState(false);
 
@@ -29,29 +31,36 @@ const VolunteerDashboard = () => {
           return;
         }
 
-        // Simulated API call
-        const response = await axios.get(`/api/volunteer-dashboard`, {
+        const response = await axios.get(`${import.meta.env.VITE_API_BASE}/volunteer-dashboard`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        const data = response.data;
-        setFirstName(data.firstName);
-        setLastName(data.lastName);
-        setTotalVolunteers(data.totalVolunteers);
-        setTotalEvents(data.totalEvents);
-        setActiveOpportunities(data.activeOpportunities);
-        setPendingApprovals(data.pendingApprovals);
-        setTotalHours(data.totalHours);
+        const data = response.data || {};
+        const profile = data.profile || {};
+        const stats = data.statistics || {};
+        const upcoming = Array.isArray(data.upcomingEvents) ? data.upcomingEvents : [];
+        const unread = data.notifications?.unread ?? 0;
+
+        if (profile && profile.completed === false) {
+          navigate('/account');
+          return;
+        }
+
+        setFirstName(profile.first_name || "");
+        setLastName(profile.last_name || "");
+
+        // Events volunteered -> use total events in history
+        setTotalVolunteers(Number(stats.totalEvents || 0));
+        // Upcoming events count
+        setTotalEvents(upcoming.length);
+        // Active opportunities -> treat as count of upcoming for now
+        setActiveOpportunities(upcoming.length);
+        // Pending approvals -> unread notifications
+        setPendingApprovals(Number(unread || 0));
+        // Total hours volunteered
+        setTotalHours(Number(stats.totalHours || 0));
 
       } catch (e) {
-        // --- IMPROVED ERROR HANDLING BASED ON BACKEND RESPONSE ---
-        if (e.response && e.response.status === 404) {
-             setError("Volunteer profile not found. Please contact support.");
-        } else if (e.response && e.response.status === 500) {
-             setError("Server error fetching dashboard. Please try again later.");
-        } else {
-             setError("Could not connect to the service.");
-        }
         console.error("Error fetching volunteer dashboard data:", e);
       } finally {
         setLoading(false);
@@ -60,7 +69,7 @@ const VolunteerDashboard = () => {
 
 
     fetchDashboardData();
-  }, []);
+  }, [navigate]);
 
   return (
     <div className="volunteer-dashboard-page">
@@ -94,7 +103,7 @@ const VolunteerDashboard = () => {
                 <div className="stat-icon"><FaUsers /></div>
                 <div className="stat-content">
                   <h3>Events Volunteered</h3>
-                  <p className="stat-value">{totalVolunteers.toLocaleString()}</p>
+                  <p className="stat-value">{Number(totalVolunteers || 0).toLocaleString()}</p>
                 </div>
               </div>
 
@@ -102,7 +111,7 @@ const VolunteerDashboard = () => {
                 <div className="stat-icon"><FaCalendarAlt /></div>
                 <div className="stat-content">
                   <h3>Upcoming Events</h3>
-                  <p className="stat-value">{totalEvents.toLocaleString()}</p>
+                  <p className="stat-value">{Number(totalEvents || 0).toLocaleString()}</p>
                 </div>
               </div>
 
@@ -110,7 +119,7 @@ const VolunteerDashboard = () => {
                 <div className="stat-icon"><FaHandsHelping /></div>
                 <div className="stat-content">
                   <h3>Active Events</h3>
-                  <p className="stat-value">{activeOpportunities}</p>
+                  <p className="stat-value">{Number(activeOpportunities || 0).toLocaleString()}</p>
                 </div>
               </div>
 
@@ -126,7 +135,7 @@ const VolunteerDashboard = () => {
                 <div className="stat-icon"><FaUsers /></div>
                 <div className="stat-content">
                   <h3>Pending Requests</h3>
-                  <p className="stat-value">{pendingApprovals}</p>
+                  <p className="stat-value">{Number(pendingApprovals || 0).toLocaleString()}</p>
                 </div>
               </div>
             </div>
