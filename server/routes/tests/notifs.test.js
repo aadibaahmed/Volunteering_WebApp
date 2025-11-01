@@ -155,3 +155,52 @@ describe("Notifications API", () => {
     expect(res.body).toHaveProperty("error", "Access denied");
   });
 });
+
+test("PUT /api/:id/read -> 400 when id is not a number", async () => {
+  const app = await setupApp({
+    getNotifsMock: jest.fn(),
+    getUserNotifsMock: jest.fn(),
+    markReadMock: jest.fn(), // should not be called
+    user: { role: "user", sub: 1 },
+  });
+
+  const res = await request(app).put("/api/not-a-number/read");
+  expect(res.statusCode).toBe(400);
+  expect(res.body.error).toMatch(/invalid notification id/i);
+});
+
+test("PUT /api/:id/read -> 500 when markNotificationAsRead throws", async () => {
+  const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+  const markReadMock = jest.fn().mockRejectedValue(new Error("db explode"));
+
+  const app = await setupApp({
+    getNotifsMock: jest.fn(),
+    getUserNotifsMock: jest.fn(),
+    markReadMock,
+    user: { role: "user", sub: 1 },
+  });
+
+  const res = await request(app).put("/api/7/read");
+  expect(res.statusCode).toBe(500);
+  expect(res.body.error).toMatch(/failed to mark notification as read/i);
+  expect(markReadMock).toHaveBeenCalledWith(7);
+  consoleSpy.mockRestore();
+});
+
+test("GET /api/my-notifications -> 500 when service throws", async () => {
+  const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+  const userNotifsMock = jest.fn().mockRejectedValue(new Error("uh oh"));
+
+  const app = await setupApp({
+    getNotifsMock: jest.fn(),
+    getUserNotifsMock: userNotifsMock,
+    markReadMock: jest.fn(),
+    user: { role: "user", sub: 99 },
+  });
+
+  const res = await request(app).get("/api/my-notifications");
+  expect(res.statusCode).toBe(500);
+  expect(res.body.error).toMatch(/failed to fetch user notifications/i);
+  expect(userNotifsMock).toHaveBeenCalledWith(99);
+  consoleSpy.mockRestore();
+});

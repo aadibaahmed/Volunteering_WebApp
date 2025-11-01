@@ -494,6 +494,21 @@
   font-weight: bold;
 }
 
+.score-high {
+  color: #27ae60;
+  font-weight: bold;
+}
+
+.score-medium {
+  color: #f39c12;
+  font-weight: bold;
+}
+
+.score-low {
+  color: #e74c3c;
+  font-weight: bold;
+}
+
 .match-actions {
   display: flex;
   justify-content: flex-end;
