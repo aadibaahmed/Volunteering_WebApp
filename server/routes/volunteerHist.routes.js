@@ -7,6 +7,49 @@ const router = express.Router();
 // GET volunteer history (optionally filtered by volunteer_id)
 router.get("/", requireAuth, async (req, res) => {
   try {
+    const { role } = req.user;
+    
+    // If superuser (manager), return all volunteers with their stats
+    if (role === 'superuser') {
+      const query = `
+        SELECT 
+          uc.user_id AS "volunteerId",
+          COALESCE(
+            CONCAT_WS(' ', up.first_name, up.last_name),
+            uc.email
+          ) AS "volunteerName",
+          uc.email,
+          COALESCE(stats.total_events, 0) AS "totalEvents",
+          COALESCE(stats.completed_events, 0) AS "completedEvents",
+          COALESCE(stats.total_hours, 0) AS "totalHours",
+          COALESCE(stats.last_activity::text, 'N/A') AS "lastActivity"
+        FROM user_credentials uc
+        LEFT JOIN user_profile up ON uc.user_id = up.user_id
+        LEFT JOIN (
+          SELECT 
+            vvh.user_id,
+            COUNT(*)::int AS total_events,
+            COUNT(*) FILTER (WHERE vvh.status ILIKE 'completed')::int AS completed_events,
+            COALESCE(SUM(vvh.hours_served), 0)::numeric AS total_hours,
+            MAX(vvh.participation_date) AS last_activity
+          FROM v_volunteer_history vvh
+          GROUP BY vvh.user_id
+        ) stats ON uc.user_id = stats.user_id
+        WHERE uc.role = 'user' AND uc.is_active = TRUE
+        ORDER BY uc.user_id ASC
+      `;
+
+      const result = await pool.query(query);
+      
+      // if no results, return empty array
+      if (result.rows.length === 0) {
+        return res.json([]);
+      }
+
+      return res.json(result.rows);
+    }
+    
+    // Otherwise, return current user's volunteer history
     const volunteerId = req.user.sub;
     const query = `
       SELECT 
