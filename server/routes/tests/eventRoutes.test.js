@@ -4,8 +4,6 @@ import express from "express";
 
 // ---- Mocks (must be before imports) ----
 jest.unstable_mockModule("../../middleware/auth.js", () => ({
-  requireAuth: (req, _res, next) => {
-    req.user = { id: 123, sub: 1, email: "admin@volunteer.com", role: "superuser" };
   requireAuth: (req, res, next) => {
     req.user = { id: 1, sub: 1, email: "admin@volunteer.com", role: "superuser" };
     next();
