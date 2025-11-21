@@ -15,28 +15,39 @@ export default function VolunteerHist() {
         setLoading(true);
         const token = localStorage.getItem("token");
 
-        // 🔒 Authentication check
         if (!token) {
           console.error("No token found. Redirecting to login...");
           window.location.href = "/login";
           return;
         }
 
-        console.log("🔍 Fetching volunteer history from:", import.meta.env.VITE_API_BASE);
+        // --- FIX: Use a robust API base URL with a fallback ---
+        const apiBase = import.meta.env.VITE_API_BASE || '';
+        const apiUrl = `${apiBase}/api/volunteer-history`;
+        // --- END FIX ---
+        
+        console.log("🔍 Fetching volunteer history from:", apiUrl);
 
-        // ✅ Fetch data
+
         const response = await axios.get(
-          `${import.meta.env.VITE_API_BASE}/volunteer-history`,
+          apiUrl,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-
-        console.log("✅ Volunteer history response:", response.data);
-
         const data = response.data;
+        console.log("✅ Volunteer history response:", data);
 
-        // 🧠 Handle both possible response formats
+
+        // Check for unexpected HTML/string response (Server Routing Error Check)
+        if (typeof data === 'string' && data.trim().startsWith('<!doctype html>')) {
+          console.error("The API returned an HTML page instead of JSON. Check server routing!");
+          setError("API Error: The server returned an unexpected web page. The API base path is likely misconfigured.");
+          setVolunteerHistory([]);
+          return;
+        }
+
+
         if (Array.isArray(data)) {
           setVolunteerHistory(data);
         } else if (Array.isArray(data.history)) {
@@ -56,7 +67,6 @@ export default function VolunteerHist() {
     fetchHistory();
   }, []);
 
-  // 📅 Format dates safely
   const formatDateTime = (dateTimeStr) => {
     if (!dateTimeStr) return "No date info";
     const date = new Date(dateTimeStr);
@@ -67,7 +77,6 @@ export default function VolunteerHist() {
     });
   };
 
-  // ⏳ Loading state
   if (loading)
     return (
       <>
@@ -79,7 +88,6 @@ export default function VolunteerHist() {
       </>
     );
 
-  // ❌ Error state
   if (error)
     return (
       <>
@@ -88,7 +96,6 @@ export default function VolunteerHist() {
       </>
     );
 
-  // ✅ Main content
   return (
     <>
       <Header />

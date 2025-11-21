@@ -21,7 +21,7 @@ router.get("/", requireAuth, async (req, res) => {
           uc.email,
           COALESCE(stats.total_events, 0) AS "totalEvents",
           COALESCE(stats.completed_events, 0) AS "completedEvents",
-          COALESCE(stats.total_hours, 0) AS "totalHours",
+          COALESCE(stats.total_hours, 0)::numeric AS "totalHours",
           COALESCE(stats.last_activity::text, 'N/A') AS "lastActivity"
         FROM user_credentials uc
         LEFT JOIN user_profile up ON uc.user_id = up.user_id
@@ -56,8 +56,10 @@ router.get("/", requireAuth, async (req, res) => {
         h.history_id AS id,
         h.participation_date AS start,
         h.participation_date AS end,
-        h.task_description AS role,
-        e.name AS organization
+        e.name AS role,                       
+        e.location AS organization,          
+        h.task_description AS description, 
+        h.hours_served AS "hoursServed"
       FROM volunteer_history h
       JOIN events e ON h.event_id = e.event_id
       WHERE h.user_id = $1 
@@ -66,15 +68,17 @@ router.get("/", requireAuth, async (req, res) => {
 
     const result = await pool.query(query, [volunteerId]);
 
-    // if no results, return a friendly message
+    // if no results, return an empty array for the frontend to easily handle
     if (result.rows.length === 0) {
-      return res.json({ message: "No volunteer history found." });
+      // Returning an empty array ensures the frontend can just check .length
+      return res.json([]); 
     }
 
     res.json(result.rows);
   } catch (err) {
     console.error("Error fetching volunteer history:", err);
-    res.status(500).json({ error: "Failed to fetch volunteer history" });
+    // Return a generic error message, but log the detail to the server console
+    res.status(500).json({ error: "Failed to fetch volunteer history. Check server logs for database error details." });
   }
 });
 

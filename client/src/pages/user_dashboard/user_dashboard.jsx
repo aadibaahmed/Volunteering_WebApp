@@ -31,14 +31,23 @@ const VolunteerDashboard = () => {
           return;
         }
 
-        const response = await axios.get(`${import.meta.env.VITE_API_BASE}/volunteer-dashboard`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const apiBase = import.meta.env.VITE_API_BASE || '';
+        const apiUrl = `${apiBase}/api/volunteer-dashboard`;
+
+
+
+        const response = await axios.get(
+          apiUrl,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
         const data = response.data || {};
         const profile = data.profile || {};
         const stats = data.statistics || {};
         const upcoming = Array.isArray(data.upcomingEvents) ? data.upcomingEvents : [];
+        const dashboardCounts = data.dashboardCounts || {};
         const unread = data.notifications?.unread ?? 0;
 
         if (profile && profile.completed === false) {
@@ -52,9 +61,9 @@ const VolunteerDashboard = () => {
         // Events volunteered -> use total events in history
         setTotalVolunteers(Number(stats.totalEvents || 0));
         // Upcoming events count
-        setTotalEvents(upcoming.length);
+        setTotalEvents(dashboardCounts.upcomingSignedUp ?? 0);
         // Active opportunities -> treat as count of upcoming for now
-        setActiveOpportunities(upcoming.length);
+        setActiveOpportunities(dashboardCounts.totalActive ?? 0);
         // Pending approvals -> unread notifications
         setPendingApprovals(Number(unread || 0));
         // Total hours volunteered
@@ -150,11 +159,6 @@ const VolunteerDashboard = () => {
                   <Link to="/allevents" className="action-button">
                     <FaCalendarAlt className="icon" />
                     <span>View Events</span>
-                  </Link>
-
-                  <Link to="/volunteer/opportunities" className="action-button">
-                    <FaHandsHelping className="icon" />
-                    <span>Find Opportunities</span>
                   </Link>
 
                   <Link to="/volunteer/reports" className="action-button">
