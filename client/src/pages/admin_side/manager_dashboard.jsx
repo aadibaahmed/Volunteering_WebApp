@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from "react-router-dom";
 import './manager_dashboard.css';
 import { dashboardApi, eventApi, matchingApi, notificationApi, volunteerApi } from '../../lib/managerApi.js';
 import EventList from '../admin_side/event_list.jsx';
@@ -192,6 +193,8 @@ function OverviewTab({ data }) {
 function EventsTab() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
 
   useEffect(() => {
     fetchEvents();
@@ -208,6 +211,19 @@ function EventsTab() {
     }
   };
 
+  const handleDelete = async (id) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this event?");
+    if (!confirmDelete) return;
+  
+    try {
+      await eventApi.deleteEvent(id);
+      setEvents(events.filter(event => event.id !== id));
+      alert("Event deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting event:", error);
+      alert("Failed to delete event");
+    }
+  };
   if (loading) {
     return <div className="loading">Loading events...</div>;
   }
@@ -237,8 +253,20 @@ function EventsTab() {
               <p><strong>Skills Required:</strong> {Array.isArray(event.skills) ? event.skills.join(', ') : event.skills}</p>
             </div>
             <div className="event-actions">
-              <button className="edit-btn">Edit</button>
-              <button className="delete-btn">Delete</button>
+            <button 
+              className="edit-btn"
+              onClick={() => navigate(`/eventmanagement/editEvent/${event.id}`)}
+            >
+              Edit
+            </button>
+
+            <button 
+              className="delete-btn"
+              onClick={() => handleDelete(event.id)}
+            >
+              Delete
+            </button>
+
             </div>
           </div>
         ))}

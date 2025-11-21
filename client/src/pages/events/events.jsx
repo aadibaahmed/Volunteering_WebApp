@@ -14,7 +14,7 @@ function Events() {
   useEffect(() => {
     const getEvents = async () => {
       try {
-        const res = await api.get('/allevents');
+        const res = await api.get('/events');
         setEvents(res.data);
       } catch (err) {
         console.error("Error fetching events:", err);
@@ -51,12 +51,12 @@ function Events() {
             <tbody>
               {items.map((event, index) => (
                 <tr key={index}>
-                  <td>{event.name}</td>
-                  <td>{event.requirements}</td>
+                  <td>{event.eventName}</td>
+                  <td>{event.description}</td>
                   <td>{event.location}</td>
                   <td>{event.volunteers}</td>
-                  <td>{new Date(event.start).toLocaleString()}</td>
-                  <td>{new Date(event.end).toLocaleString()}</td>
+                  <td>{new Date(event.startTime).toLocaleString()}</td>
+                  <td>{new Date(event.endTime).toLocaleString()}</td>
                   <td>{new Date(event.date).toLocaleDateString()}</td>
                   <td>
                     <button
