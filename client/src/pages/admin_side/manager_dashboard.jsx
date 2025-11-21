@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from "react-router-dom";
 import './manager_dashboard.css';
 import { dashboardApi } from '../../lib/managerApi.js';
 import Header from '../../assets/header_after/header_after.jsx'
@@ -148,6 +149,317 @@ function OverviewTab({ data }) {
             ))}
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// Events Tab Component
+function EventsTab() {
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
+  const fetchEvents = async () => {
+    try {
+      const events = await eventApi.getAllEvents();
+      setEvents(events);
+    } catch (error) {
+      console.error('Error fetching events:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this event?");
+    if (!confirmDelete) return;
+  
+    try {
+      await eventApi.deleteEvent(id);
+      setEvents(events.filter(event => event.id !== id));
+      alert("Event deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting event:", error);
+      alert("Failed to delete event");
+    }
+  };
+  if (loading) {
+    return <div className="loading">Loading events...</div>;
+  }
+
+  return (
+    <div className="events-tab">
+      <div className="events-header">
+        <h3>Event Management</h3>
+        <button className="create-event-btn" onClick={() => window.location.href = '/eventmanagement'}>
+          Create New Event
+        </button>
+      </div>
+      
+      <div className="events-list">
+        {events.map(event => (
+          <div key={event.id} className="event-card">
+            <div className="event-header">
+              <h4>{event.eventName}</h4>
+              <span className={`urgency ${event.urgency.toLowerCase()}`}>
+                {event.urgency}
+              </span>
+            </div>
+            <div className="event-details">
+              <p><strong>Date:</strong> {event.date}</p>
+              <p><strong>Time:</strong> {event.startTime} - {event.endTime}</p>
+              <p><strong>Location:</strong> {event.location}</p>
+              <p><strong>Skills Required:</strong> {Array.isArray(event.skills) ? event.skills.join(', ') : event.skills}</p>
+            </div>
+            <div className="event-actions">
+            <button 
+              className="edit-btn"
+              onClick={() => navigate(`/eventmanagement/editEvent/${event.id}`)}
+            >
+              Edit
+            </button>
+
+            <button 
+              className="delete-btn"
+              onClick={() => handleDelete(event.id)}
+            >
+              Delete
+            </button>
+
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Volunteers Tab Component
+function VolunteersTab() {
+  const [volunteers, setVolunteers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchVolunteers();
+  }, []);
+
+  const fetchVolunteers = async () => {
+    try {
+      const volunteers = await volunteerApi.getAllVolunteers();
+      setVolunteers(volunteers);
+    } catch (error) {
+      console.error('Error fetching volunteers:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <div className="loading">Loading volunteers...</div>;
+  }
+
+  return (
+    <div className="volunteers-tab">
+      <h3>Volunteer Management</h3>
+      <div className="volunteers-list">
+        {volunteers.map((volunteer, index) => (
+          <div key={volunteer.volunteerId || index} className="volunteer-card">
+            <div className="volunteer-info">
+              <h4>{volunteer.volunteerName}</h4>
+              <p>{volunteer.email}</p>
+            </div>
+            <div className="volunteer-stats">
+              <div className="stat">
+                <span className="label">Total Events:</span>
+                <span className="value">{volunteer.totalEvents}</span>
+              </div>
+              <div className="stat">
+                <span className="label">Completed:</span>
+                <span className="value">{volunteer.completedEvents}</span>
+              </div>
+              <div className="stat">
+                <span className="label">Total Hours:</span>
+                <span className="value">{volunteer.totalHours}</span>
+              </div>
+              <div className="stat">
+                <span className="label">Last Activity:</span>
+                <span className="value">{volunteer.lastActivity}</span>
+              </div>
+            </div>
+            <div className="volunteer-actions">
+              <button className="view-history-btn">View History</button>
+              <button className="contact-btn">Contact</button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Matching Tab Component
+function MatchingTab() {
+  const [matches, setMatches] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchMatches();
+  }, []);
+
+  const fetchMatches = async () => {
+    try {
+      const matches = await matchingApi.getAllMatches();
+      setMatches(matches);
+    } catch (error) {
+      console.error('Error fetching matches:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStatusUpdate = async (matchId, newStatus) => {
+    try {
+      await matchingApi.updateMatchStatus(matchId, newStatus);
+      fetchMatches(); // Refresh the list
+    } catch (error) {
+      console.error('Error updating match status:', error);
+    }
+  };
+
+  if (loading) {
+    return <div className="loading">Loading matches...</div>;
+  }
+
+  return (
+    <div className="matching-tab">
+      <h3>Volunteer Matching</h3>
+      <div className="matches-list">
+        {matches.map(match => (
+          <div key={match.id} className="match-card">
+            <div className="match-info">
+              <div className="volunteer-info">
+                <h4>{match.volunteer?.name || 'Unknown Volunteer'}</h4>
+                <p>Skills: {match.volunteer?.skills?.join(', ') || 'N/A'}</p>
+              </div>
+              <div className="event-info">
+                <h4>{match.event?.name || 'Unknown Event'}</h4>
+                <p>Date: {match.event?.date || 'N/A'}</p>
+                <p>Location: {match.event?.location || 'N/A'}</p>
+              </div>
+            </div>
+            <div className="match-details">
+              <div className="match-score">
+                <span className="label">Match Score:</span>
+                <span className="value">{match.matchScore}%</span>
+              </div>
+              <div className="match-status">
+                <span className="label">Status:</span>
+                <span className={`status ${match.status}`}>{match.status}</span>
+              </div>
+              <div className="match-notes">
+                <span className="label">Notes:</span>
+                <span className="value">{match.notes || 'No notes'}</span>
+              </div>
+            </div>
+            <div className="match-actions">
+              <select 
+                value={match.status} 
+                onChange={(e) => handleStatusUpdate(match.id, e.target.value)}
+                className="status-select"
+              >
+                <option value="pending">Pending</option>
+                <option value="assigned">Assigned</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Notifications Tab Component
+
+function NotificationsTab() {
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
+
+  const fetchNotifications = async () => {
+    setLoading(true);
+    try {
+      const data = await notificationApi.getMyNotifications();
+      // Normalize data
+      const formatted = data.map(n => ({
+        id: n.notif_id ?? n.id,
+        user_id: n.user_id,
+        message: n.message,
+        time: new Date(n.time).toLocaleString(),
+        unread: n.unread,
+        type: n.type,
+        priority: n.priority,
+      }));
+      setNotifications(formatted);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const markAsRead = async (id) => {
+    try {
+      await notificationApi.markAsRead(id);
+      setNotifications(prev =>
+        prev.map(n => (n.id === id ? { ...n, unread: false } : n))
+      );
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  if (loading) return <div>Loading Notifications...</div>;
+
+  return (
+    <div className="notifications-tab">
+      <h3>Notifications</h3>
+      <div className="notifications-list">
+        {notifications.map(notification => (
+          <div 
+            key={notification.id} 
+            className={`notification-item ${notification.unread ? 'unread' : 'read'}`}
+          >
+            <div className="notification-content">
+              <div className="notification-message">{notification.message}</div>
+              <div className="notification-meta">
+                <span className="time">{notification.time}</span>
+                <span className={`priority ${notification.priority}`}>{notification.priority}</span>
+                <span className="type">{notification.type}</span>
+              </div>
+            </div>
+            <div className="notification-actions">
+              {notification.unread && (
+                <button 
+                  onClick={() => markAsRead(notification.id)}
+                  className="mark-read-btn"
+                >
+                  Mark as Read
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

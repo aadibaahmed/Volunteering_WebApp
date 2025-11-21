@@ -66,6 +66,7 @@ router.get("/", requireAuth, async (req, res) => {
 
     const result = await pool.query(query, [volunteerId]);
 
+
     // if no results, return a friendly message
     if (result.rows.length === 0) {
       return res.json({ message: "No volunteer history found." });
