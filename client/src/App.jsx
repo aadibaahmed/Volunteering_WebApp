@@ -135,6 +135,14 @@ export default function App() {
         }
       />
 
+      <Route
+        path="/eventmanagement/editEvent/:id"
+        element={
+          <Protected allowedRoles={['superuser']}>
+            <EventManagement />
+          </Protected>
+        }
+      />
 
 
       <Route
