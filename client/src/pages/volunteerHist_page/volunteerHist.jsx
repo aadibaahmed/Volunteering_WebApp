@@ -111,7 +111,6 @@ export default function VolunteerHist() {
           <div className="timeline">
             {volunteerHistory.map((item, index) => (
               <div key={item.id || index} className="timeline-item">
-                <div className="timeline-dot" />
                 <div className="timeline-content-box"> 
                   <span className="timeline-date">
                     {item.start && item.end
