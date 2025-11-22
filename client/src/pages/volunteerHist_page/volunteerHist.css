@@ -35,21 +35,6 @@
   margin-bottom: 30px;
 }
 
-/* Timeline dot */
-.timeline-dot {
-  position: absolute;
-  left: -11px;
-  top: 5px;
-  width: 16px;
-  height: 16px;
-  /* CHANGE: Use the main dashboard accent color */
-  background-color: #fc5c5c;
-  border-radius: 50%;
-  /* Make the border consistent and minimal */
-  border: 2px solid #fff;
-  /* Use a light shadow for depth */
-  box-shadow: 0 0 0 2px #f9f9f9;
-}
 
 /* Inner light gray boxes for content (was sage-box) */
 .timeline-content-box { /* Renamed class for clarity */
