@@ -6,8 +6,6 @@ import { api } from '../../lib/api';
 
 function Events() {
   const [events, setEvents] = useState([]);
-          console.log(events)
-
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -52,11 +50,11 @@ function Events() {
               {items.map((event, index) => (
                 <tr key={index}>
                   <td>{event.eventName}</td>
-                  <td>{event.description}</td>
+                  <td>{event.skills}</td>
                   <td>{event.location}</td>
                   <td>{event.volunteers}</td>
-                  <td>{new Date(event.startTime).toLocaleString()}</td>
-                  <td>{new Date(event.endTime).toLocaleString()}</td>
+                  <td>{event.startTime}</td>
+                  <td>{event.endTime}</td>
                   <td>{new Date(event.date).toLocaleDateString()}</td>
                   <td>
                     <button
@@ -80,8 +78,10 @@ function Events() {
       <div className="events-container">
         <Header />
         <div className="events-header">
-          <h1 className="events-title" style={{ 'padding-left': '6rem'}}>Please sign up for events</h1>
-          <p style={{ 'font-size': '24px', color: '#555', marginTop: '2rem' }}>
+          <h1 className="events-title" style={{ paddingLeft: '6rem' }}>
+            Please sign up for events
+          </h1>
+          <p style={{ fontSize: '24px', color: '#555', marginTop: '2rem' }}>
             Explore volunteer opportunities and upcoming events below.
           </p>
         </div>
