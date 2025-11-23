@@ -16,26 +16,25 @@ router.post("/", requireAuth, async (req, res) => {
       start_time,
       end_time,
       volunteer_needed = 0,
-      manager_user_id = null,
     } = req.body;
 
     if (!event_name || !location || !event_date || !start_time || !end_time) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
-    const manager_id = req.user?.id || null;
-
+    const manager_id = req.user?.sub || req.user?.id || null;
+    const manager_email = req.user?.email || null;
     const skillsArray = Array.isArray(required_skills)
       ? required_skills
       : required_skills.split(',').map(skill => skill.trim());
 
     const formattedSkills = skillsArray.join(', ');
-    const urgencyValue = urgency.toLowerCase();
+    const urgencyValue = urgency?.toLowerCase() || null;
 
     const result = await query(
       `INSERT INTO events 
-      (name, required_skills, event_description, location, urgency, event_date, time_start, time_end, volunteer_needed, manager_user_id)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+      (name, required_skills, event_description, location, urgency, event_date, time_start, time_end, volunteer_needed, manager_user_id, manager_email)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
        RETURNING *`,
       [
         event_name,
@@ -47,7 +46,8 @@ router.post("/", requireAuth, async (req, res) => {
         start_time,
         end_time,
         volunteer_needed,
-        manager_id
+        manager_id,
+        manager_email
       ]
     );
 
@@ -57,6 +57,7 @@ router.post("/", requireAuth, async (req, res) => {
     });
 
   } catch (err) {
+    console.error("Create event error:", err);
     res.status(500).json({ message: "Error creating event" });
   }
 });
@@ -74,7 +75,9 @@ router.get("/", async (req, res) => {
         event_date AS date,
         time_start AS "startTime",
         time_end AS "endTime",
-        volunteer_needed AS volunteers
+        volunteer_needed AS volunteers,
+        manager_user_id,
+        manager_email
       FROM events
       WHERE event_date >= CURRENT_DATE
       ORDER BY event_date ASC
@@ -82,6 +85,7 @@ router.get("/", async (req, res) => {
 
     res.json(result.rows);
   } catch (err) {
+    console.error("GET events error:", err.message);
     res.status(500).json({ message: "Error fetching events" });
   }
 });
@@ -100,7 +104,10 @@ router.get("/:id", async (req, res) => {
         urgency,
         event_date AS date,
         time_start AS "startTime",
-        time_end AS "endTime"
+        time_end AS "endTime",
+        volunteer_needed AS "volunteers",
+        manager_user_id,
+        manager_email
       FROM events
       WHERE event_id = $1`,
       [id]
@@ -113,6 +120,7 @@ router.get("/:id", async (req, res) => {
     res.json(result.rows[0]);
 
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Failed to load event" });
   }
 });
@@ -129,7 +137,8 @@ router.put("/:id", requireAuth, async (req, res) => {
       urgency,
       event_date,
       start_time,
-      end_time
+      end_time,
+      volunteer_needed
     } = req.body;
 
     const skillsArray = Array.isArray(required_skills)
@@ -146,8 +155,9 @@ router.put("/:id", requireAuth, async (req, res) => {
         urgency = $5,
         event_date = $6,
         time_start = $7,
-        time_end = $8
-       WHERE event_id = $9
+        time_end = $8,
+        volunteer_needed = $9
+       WHERE event_id = $10
        RETURNING *`,
       [
         event_name,
@@ -158,6 +168,7 @@ router.put("/:id", requireAuth, async (req, res) => {
         event_date,
         start_time,
         end_time,
+        volunteer_needed,
         id
       ]
     );
@@ -172,6 +183,7 @@ router.put("/:id", requireAuth, async (req, res) => {
     });
 
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Failed to update event" });
   }
 });
@@ -200,6 +212,7 @@ router.put("/:id/volunteers", async (req, res) => {
     res.json({ message: "Volunteers updated successfully", event: result.rows[0] });
 
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: "Failed to update volunteers" });
   }
 });
@@ -220,6 +233,7 @@ router.delete("/:id", requireAuth, async (req, res) => {
     res.status(200).json({ message: "Event deleted successfully" });
 
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: "Failed to delete event" });
   }
 });

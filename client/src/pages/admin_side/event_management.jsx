@@ -7,6 +7,8 @@ function EventManagement() {
   const { id } = useParams();
   const isEditMode = !!id;
 
+  const storedUser = JSON.parse(localStorage.getItem("user"));
+
   const [eventName, setEventName] = useState("");
   const [eventDescription, setEventDescription] = useState("");
   const [location, setLocation] = useState("");
@@ -38,15 +40,12 @@ function EventManagement() {
         setEndTime(event.endTime || "");
         setSkills(
           event.skills
-            ? event.skills.split(",").map(s => s.trim())
+            ? event.skills.split(',').map(s => s.trim())
             : []
         );
       } catch (error) {
-        if (error?.response?.status === 404) {
-          alert("Event not found.");
-        } else {
-          console.error("Load error:", error);
-        }
+        console.error("Load error:", error);
+        alert("Failed to load event for editing.");
       }
     };
 
@@ -64,12 +63,16 @@ function EventManagement() {
     const formData = {
       event_name: eventName,
       event_description: eventDescription,
-      location: location,
+      location,
       required_skills: skills,
-      urgency: urgency,
+      urgency,
       event_date: eventDate,
       start_time: startTime,
       end_time: endTime,
+
+      //managerid and email
+      manager_user_id: storedUser?.id,
+      manager_email: storedUser?.email
     };
 
     try {
@@ -93,6 +96,7 @@ function EventManagement() {
       }
 
       setSuccessMsg(res.message || "Success!");
+
     } catch (error) {
       console.error("Error:", error);
       alert(`Failed: ${error.response?.data?.message || error.message}`);
@@ -118,27 +122,13 @@ function EventManagement() {
         {successMsg && <div className="notice ok">{successMsg}</div>}
 
         <label>Event Name *</label>
-        <input
-          type="text"
-          value={eventName}
-          onChange={(e) => setEventName(e.target.value)}
-          required
-        />
+        <input type="text" value={eventName} onChange={(e) => setEventName(e.target.value)} required />
 
         <label>Event Description *</label>
-        <textarea
-          value={eventDescription}
-          onChange={(e) => setEventDescription(e.target.value)}
-          required
-        />
+        <textarea value={eventDescription} onChange={(e) => setEventDescription(e.target.value)} required />
 
         <label>Location *</label>
-        <input
-          type="text"
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-          required
-        />
+        <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} required />
 
         <label>Required Skills *</label>
         <select onChange={handleSkillChange} defaultValue="">
@@ -158,11 +148,7 @@ function EventManagement() {
         </div>
 
         <label>Urgency *</label>
-        <select
-          value={urgency}
-          onChange={(e) => setUrgency(e.target.value)}
-          required
-        >
+        <select value={urgency} onChange={(e) => setUrgency(e.target.value)} required>
           <option value="">-- Select --</option>
           <option value="High">High</option>
           <option value="Medium">Medium</option>
@@ -170,32 +156,18 @@ function EventManagement() {
         </select>
 
         <label>Event Date *</label>
-        <input
-          type="date"
-          value={eventDate}
-          onChange={(e) => setEventDate(e.target.value)}
-          required
-        />
+        <input type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} required />
 
         <label>Start Time *</label>
-        <input
-          type="time"
-          value={startTime}
-          onChange={(e) => setStartTime(e.target.value)}
-          required
-        />
+        <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} required />
 
         <label>End Time *</label>
-        <input
-          type="time"
-          value={endTime}
-          onChange={(e) => setEndTime(e.target.value)}
-          required
-        />
+        <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} required />
 
         <button type="submit">
           {isEditMode ? "Update Event" : "Create Event"}
         </button>
+
       </form>
     </div>
   );

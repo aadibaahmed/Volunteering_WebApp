@@ -356,13 +356,30 @@ export const dashboardApi = {
   // Get manager dashboard data
   getManagerDashboardData: async () => {
     try {
-      const [events, matches, notifications, volunteers] = await Promise.all([
-        eventApi.getAllEvents(),
-        matchingApi.getAllMatches(),
-        notificationApi.getMyNotifications(),
-        volunteerApi.getAllVolunteers()
-      ]);
-
+  
+      const events = await eventApi.getAllEvents();
+  
+      let matches = [];
+      try {
+        matches = await matchingApi.getAllMatches();
+      } catch (e) {
+        console.warn("Matches failed:", e.message);
+      }
+  
+      let notifications = [];
+      try {
+        notifications = await notificationApi.getMyNotifications();
+      } catch (e) {
+        console.warn("Notifications failed:", e.message);
+      }
+  
+      let volunteers = [];
+      try {
+        volunteers = await volunteerApi.getAllVolunteers();
+      } catch (e) {
+        console.warn("Volunteers failed:", e.message);
+      }
+  
       return {
         events,
         matches,
@@ -375,13 +392,13 @@ export const dashboardApi = {
           pendingAssignments: matches.filter(m => m.status === 'pending').length
         }
       };
+  
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      console.error('Dashboard failure:', error);
       throw error;
     }
   },
-
-  // Get volunteer dashboard data
+    // Get volunteer dashboard data
   getVolunteerDashboardData: async () => {
     try {
       const [profile, history, notifications, events] = await Promise.all([
