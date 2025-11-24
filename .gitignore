@@ -1,5 +1,6 @@
 .DS_Store
 client/.env
 server/.env
-server/coverage/icov/report
+server/coverage
+server/coverage/icov-report
 server/node_modules/
