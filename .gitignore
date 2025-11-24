@@ -2,4 +2,4 @@
 client/.env
 server/.env
 server/coverage/
-server/node_modules/.package-lock.json
+server/node_modules/
