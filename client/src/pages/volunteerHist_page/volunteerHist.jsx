@@ -120,7 +120,7 @@ export default function VolunteerHist() {
                 <div className="timeline-content-box"> 
                   <span className="timeline-date">
                     {item.start && item.end
-                      ? `${formatDateTime(item.start)}  ${formatDateTime(item.end)}`
+                      ? `${formatDateTime(item.start)} - ${formatDateTime(item.end)}`
                       : formatDateTime(item.start)}
                   </span>
                   {/* 🆕 ADDED: Display the hours served */}

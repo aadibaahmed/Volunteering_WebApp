@@ -104,6 +104,7 @@ const onSubmit = async (data) => {
 };
   return (
     <div className="account-form">
+      <Header />
       <h1>Complete Your Profile</h1>
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="section-header">General Information</div>
