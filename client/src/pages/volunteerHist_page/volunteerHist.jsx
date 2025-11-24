@@ -21,10 +21,8 @@ export default function VolunteerHist() {
           return;
         }
 
-        // --- FIX: Use a robust API base URL with a fallback ---
         const apiBase = import.meta.env.VITE_API_BASE || '';
         const apiUrl = `${apiBase}/api/volunteer-history`;
-        // --- END FIX ---
         
         console.log("🔍 Fetching volunteer history from:", apiUrl);
 
@@ -36,10 +34,9 @@ export default function VolunteerHist() {
           }
         );
         const data = response.data;
-        console.log("✅ Volunteer history response:", data);
+        console.log("Volunteer history response:", data);
 
 
-        // Check for unexpected HTML/string response (Server Routing Error Check)
         if (typeof data === 'string' && data.trim().startsWith('<!doctype html>')) {
           console.error("The API returned an HTML page instead of JSON. Check server routing!");
           setError("API Error: The server returned an unexpected web page. The API base path is likely misconfigured.");
@@ -51,7 +48,8 @@ export default function VolunteerHist() {
         if (Array.isArray(data)) {
           setVolunteerHistory(data);
         } else if (Array.isArray(data.history)) {
-          setVolunteerHistory(data.history);
+          // This path is usually for grouped data; we expect the top-level array
+          setVolunteerHistory(data.history); 
         } else {
           console.error("Unexpected response format:", data);
           setVolunteerHistory([]);
@@ -75,6 +73,14 @@ export default function VolunteerHist() {
       month: "short",
       day: "numeric",
     });
+  };
+
+  // Helper function to format the hours string
+  const formatHours = (hours) => {
+    const numHours = parseFloat(hours);
+    if (isNaN(numHours) || numHours <= 0) return "N/A";
+    
+    return `${numHours.toFixed(1)} hours`;
   };
 
   if (loading)
@@ -114,15 +120,19 @@ export default function VolunteerHist() {
                 <div className="timeline-content-box"> 
                   <span className="timeline-date">
                     {item.start && item.end
-                      ? `${formatDateTime(item.start)} – ${formatDateTime(item.end)}`
+                      ? `${formatDateTime(item.start)}  ${formatDateTime(item.end)}`
                       : formatDateTime(item.start)}
                   </span>
-                  <h2 className="timeline-role">{item.role || "No role info"}</h2>
+                  {/* 🆕 ADDED: Display the hours served */}
+                  <h2 className="timeline-role">{item.role || "No event info"}</h2>
                   <p className="timeline-org">
-                    {item.organization || "No organization info"}
+                    {item.organization || "No location info"}
                   </p>
                   <p className="timeline-desc">
                     {item.description || "No description available"}
+                  </p>
+                  <p className="timeline-hours-served">
+                  <span style={{fontWeight: 550 }}>Time Served:</span> {formatHours(item.hoursServed)}
                   </p>
                 </div>
               </div>
