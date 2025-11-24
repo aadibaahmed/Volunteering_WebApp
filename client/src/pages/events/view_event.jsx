@@ -44,14 +44,25 @@ function EventDetails() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      alert("Successfully signed up!");
+      alert("Successfully signed up!"); 
       navigate('/allevents');
     } catch (err) {
       console.error("Sign up failed:", err);
-      if (err.response?.status === 401) {
+      
+      const status = err.response?.status;
+      const message = err.response?.data?.message; 
+
+      if (status === 401) {
         alert("Your session expired. Please log in again.");
         navigate('/login');
-      } else {
+      } 
+      else if (status === 409) {
+        alert(`You are already signed up for this event.`); 
+      }
+      else if (status === 500) {
+        alert(`Server Error: ${message || "Failed to sign up due to a server issue."}`);
+      }
+      else {
         alert("Failed to sign up. Please try again.");
       }
     }
