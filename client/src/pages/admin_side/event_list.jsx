@@ -45,6 +45,7 @@ function EventList() {
                   <th>Date</th>
                   <th>Start Time</th>
                   <th>End Time</th>
+                  <th>Contact</th>
                 </tr>
               </thead>
               <tbody>
@@ -58,6 +59,7 @@ function EventList() {
                     <td>{formatDate(event.date)}</td>
                     <td>{event.startTime || event.time_start || 'N/A'}</td>
                     <td>{event.endTime || event.time_end || 'N/A'}</td>
+                    <td>{event.manager_email || 'N/A'}</td>
                   </tr>
                 ))}
               </tbody>

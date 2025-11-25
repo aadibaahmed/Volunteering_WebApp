@@ -13,7 +13,9 @@ function Events() {
     const getEvents = async () => {
       try {
         const res = await api.get('/events');
-        setEvents(res.data);
+        const filtered = res.data.filter(event => event.manager_email && event.manager_email.trim() !== "");
+        setEvents(filtered);
+
       } catch (err) {
         console.error("Error fetching events:", err);
         setError("Failed to load events.");
@@ -43,7 +45,9 @@ function Events() {
                 <th>Start</th>
                 <th>End</th>
                 <th>Date</th>
+                <th>Contact</th>
                 <th>Action</th>
+                
               </tr>
             </thead>
             <tbody>
@@ -56,6 +60,7 @@ function Events() {
                   <td>{event.startTime}</td>
                   <td>{event.endTime}</td>
                   <td>{new Date(event.date).toLocaleDateString()}</td>
+                  <td>{event.manager_email || 'N/A'}</td>
                   <td>
                     <button
                       className="view_button"
