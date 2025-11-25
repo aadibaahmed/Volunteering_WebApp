@@ -18,6 +18,7 @@ import VolunteerList from './pages/admin_side/volunteerlist.jsx'
 import ManagerEvents from './pages/admin_side/Manager_Dashboard_Tabs/manager_events.jsx'
 import ManagerVolunteerMatch from './pages/admin_side/Manager_Dashboard_Tabs/volunteer_matching_manager.jsx'
 import ManagerNotifs from './pages/admin_side/Manager_Dashboard_Tabs/notifications_manager.jsx'
+import Reports from './pages/admin_side/reports.jsx'
 
 
 
@@ -161,6 +162,15 @@ export default function App() {
           </Protected>
         }
       />
+      <Route
+        path="/managerdash/reports"
+        element={
+          <Protected allowedRoles={['superuser']}>
+            <Reports />
+          </Protected>
+        }
+      />
+
     </Routes>
   );
 }

@@ -28,6 +28,9 @@ function Header() {
         { title: "Events", link: `/managerdash/events` },
         { title: "Matching", link: `/managerdash/matching` },
         { title: "Notifications", link: `/managerdash/notifications` },
+        
+        { title: "Reports", link: `/managerdash/reports` },
+
         { title: "Account", link: `/account` }
     ];
 
@@ -42,6 +45,7 @@ function Header() {
                     <div className="logo">
                         <h1 style={{ color: "white" }}>ImpactMatch</h1>
                     </div>
+
                     <div className="nav-links">
                         {role !== 'superuser' && <Notifications />}
 
