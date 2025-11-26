@@ -11,6 +11,7 @@ export default function Login() {
   const [err, setErr] = useState('');
   const [loading, setLoading] = useState(false);
 
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErr('');
@@ -25,17 +26,28 @@ export default function Login() {
       if (data.user.role === 'superuser') {
         nav('/managerdash');
       } else if (data.user.role === 'user') {
-        // Check profile completion before sending to dashboard
         try {
           const me = await api.get('/profile/me');
           const profile = me.data || null;
+
           if (!profile || profile.completed === false) {
+            try {
+              await api.post('/insert_notif_on_register', {
+                user_id: data.user.id,
+                message: "Welcome! Thank you for joining, check out all events in the EVENT tab!",
+                unread: true,
+                type: "welcome",
+                priority: "low",
+              });
+            } catch (notifErr) {
+              console.error("Failed to insert welcome notification:", notifErr);
+            }
+
             nav('/account');
           } else {
             nav('/volunteerdash');
           }
         } catch {
-          // If profile endpoint fails or no profile exists, send to completion
           nav('/account');
         }
       } else {

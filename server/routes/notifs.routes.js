@@ -10,6 +10,7 @@ import {
   // deleteNotification,
   // getNotificationStats
 } from '../notifications/get_notifs.js';
+import { insert_on_register } from '../notifications/insert_notifs.js';
 
 const router = express.Router();
 
@@ -118,5 +119,23 @@ router.put('/:id/read', requireAuth, async (req, res) => {
 //     res.status(500).json({ error: 'Failed to fetch stats' });
 //   }
 // });
+router.post('/insert_notif_on_register', requireAuth, async (req, res) => {
 
+  console.log("Im Here")
+  try {
+    const { user_id, message, unread = true, type = 'welcome', priority = 'low' } = req.body;
+
+    if (!user_id || !message?.trim()) {
+      return res.status(400).json({ error: 'user_id and message are required' });
+    }
+
+    // Insert the notification using your DB function
+    const newNotif = await insert_on_register(user_id, message, unread, type, priority);
+
+    res.status(201).json({ message: 'Notification created successfully', notification: newNotif });
+  } catch (error) {
+    console.error('Error inserting notification on register:', error);
+    res.status(500).json({ error: 'Failed to insert notification' });
+  }
+});
 export default router;
