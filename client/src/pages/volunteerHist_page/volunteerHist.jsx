@@ -22,7 +22,7 @@ export default function VolunteerHist() {
         }
 
         const apiBase = import.meta.env.VITE_API_BASE || '';
-        const apiUrl = `${apiBase}/api/volunteer-history`;
+        const apiUrl = `${apiBase}/volunteer-history`;
         
         console.log("🔍 Fetching volunteer history from:", apiUrl);
 

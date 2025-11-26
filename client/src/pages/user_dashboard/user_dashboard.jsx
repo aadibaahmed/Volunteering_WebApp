@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { FaHandsHelping, FaCalendarAlt, FaUsers, FaChartBar, FaHandHoldingHeart } from 'react-icons/fa';
+import { FaHandsHelping, FaCalendarAlt, FaUsers, FaChartBar } from 'react-icons/fa';
 import axios from "axios";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import './user_dashboard.css'
 import Header from '../../assets/header_after/header_after'
 
@@ -16,7 +16,7 @@ const VolunteerDashboard = () => {
   const [pendingApprovals, setPendingApprovals] = useState(0); // unread notifications
   const [totalHours, setTotalHours] = useState(0);
   const [error, setError] = useState(null);
-
+  const [upcoming, setUpcoming] = useState([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -32,7 +32,7 @@ const VolunteerDashboard = () => {
         }
 
         const apiBase = import.meta.env.VITE_API_BASE || '';
-        const apiUrl = `${apiBase}/api/volunteer-dashboard`;
+        const apiUrl = `${apiBase}/volunteer-dashboard`;
 
 
 
@@ -54,6 +54,7 @@ const VolunteerDashboard = () => {
           navigate('/account');
           return;
         }
+        setUpcoming(upcoming)
 
         setFirstName(profile.first_name || "");
         setLastName(profile.last_name || "");
@@ -152,19 +153,32 @@ const VolunteerDashboard = () => {
             <div className="dashboard-content">
               <div className="dashboard-section">
                 <div className="section-header">
-                  <h2>Quick Actions</h2>
+                  <h2>Upcoming Events</h2>
                 </div>
 
-                <div className="quick-actions">
-                  <Link to="/allevents" className="action-button">
-                    <FaCalendarAlt className="icon" />
-                    <span>View Events</span>
-                  </Link>
+                <div className="upcoming">
+                  {upcoming.length === 0 ? (
+                    <p className="no-upcoming">No upcoming events.</p>
+                  ) : (
+                    upcoming.map(event => (
+                      <div className="event-card" key={event.event_id}>
+                        <div className="event-card-header">
+                          <h3>{event.name}</h3>
+                          <span className="event-date">
+                            {new Date(event.event_date).toLocaleDateString('en-US', {
+                              month: 'long',
+                              day: 'numeric',
+                              year: 'numeric'
+                            })}
+                          </span>
+                        </div>
 
-                  <Link to="/volunteer/reports" className="action-button">
-                    <FaChartBar className="icon" />
-                    <span>View Reports</span>
-                  </Link>
+                        <p className="event-location">
+                          <strong>Location:</strong> {event.location}
+                        </p>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             </div>

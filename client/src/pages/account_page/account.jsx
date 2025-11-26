@@ -105,7 +105,7 @@ const onSubmit = async (data) => {
   return (
     <div className="account-form">
       <Header />
-      <h1>Complete Your Profile</h1>
+      <h1>Update Profile</h1>
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="section-header">General Information</div>
         
@@ -141,7 +141,7 @@ const onSubmit = async (data) => {
             <input {...register('zip_code')} maxLength={9} placeholder="12345 or 12345-6789"/>
           </Field>
 
-          <Field label="Skills* (select multiple)" error={errors.skills?.message}>
+          <Field label="Skills* (select multiple)" error={errors.skills?.message} className="skills-field">
             <Select
               isMulti
               classNamePrefix="rs"
@@ -191,9 +191,9 @@ const onSubmit = async (data) => {
   );
 }
 
-function Field({ label, error, children }) {
+function Field({ label, error, children, className }) {
   return (
-    <div className="field">
+    <div className={`field ${className || ""}`}>
       <label>{label}</label>
       {children}
       {error && <div className="error">{error}</div>}
