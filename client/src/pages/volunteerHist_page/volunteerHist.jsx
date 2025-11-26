@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import "./volunteerHist.css";
 import Header from "../../assets/header_after/header_after";
-import axios from "axios";
 import { Link } from "react-router-dom";
+import { api } from '../../lib/api';
+
 
 export default function VolunteerHist() {
   const [volunteerHistory, setVolunteerHistory] = useState([]);
@@ -21,18 +22,8 @@ export default function VolunteerHist() {
           return;
         }
 
-        const apiBase = import.meta.env.VITE_API_BASE || '';
-        const apiUrl = `${apiBase}/volunteer-history`;
-        
-        console.log("🔍 Fetching volunteer history from:", apiUrl);
+        const response = await api.get('/volunteer-history');
 
-
-        const response = await axios.get(
-          apiUrl,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
         const data = response.data;
         console.log("Volunteer history response:", data);
 

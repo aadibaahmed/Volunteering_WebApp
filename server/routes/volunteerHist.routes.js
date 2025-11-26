@@ -1,10 +1,10 @@
 import express from "express";
-import { pool } from "../database.js"; // your PostgreSQL connection pool
-import { requireAuth } from "../middleware/auth.js"; // Adjust path as necessary if auth.js is in another folder
+import { pool } from "../database.js"; 
+import { requireAuth } from "../middleware/auth.js"; 
 
 const router = express.Router();
 
-// GET volunteer history (optionally filtered by volunteer_id)
+// GET volunteer history 
 router.get("/", requireAuth, async (req, res) => {
   try {
     const { role } = req.user;

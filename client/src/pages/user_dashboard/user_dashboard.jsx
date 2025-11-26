@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { FaHandsHelping, FaCalendarAlt, FaUsers, FaChartBar } from 'react-icons/fa';
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import './user_dashboard.css'
 import Header from '../../assets/header_after/header_after'
+import { api } from '../../lib/api';
 
 const VolunteerDashboard = () => {
   const navigate = useNavigate();
@@ -31,17 +31,7 @@ const VolunteerDashboard = () => {
           return;
         }
 
-        const apiBase = import.meta.env.VITE_API_BASE || '';
-        const apiUrl = `${apiBase}/volunteer-dashboard`;
-
-
-
-        const response = await axios.get(
-          apiUrl,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const response = await api.get('/volunteer-dashboard');
 
         const data = response.data || {};
         const profile = data.profile || {};

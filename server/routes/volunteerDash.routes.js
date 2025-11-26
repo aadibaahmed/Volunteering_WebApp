@@ -11,15 +11,8 @@ console.log("volunteerDash.routes.js loaded");
 router.get('/', requireAuth, async (req, res) => {
   const userId = req.user.sub;
 
-  console.log("🔍 Volunteer Dashboard Hit");
-  console.log("Authenticated User ID:", userId);
-
-
   try {
 
-    console.log("Running volunteer dashboard queries...");
-
-    // Query 6 is added here to run concurrently
     const [profileRes, unreadRes, upcomingRes, histRes, statsRes, activeOpportunitiesRes] = await Promise.all([
       
       // Query 1: Profile
@@ -55,6 +48,7 @@ router.get('/', requireAuth, async (req, res) => {
          LIMIT 5`,
         [userId]
       ),
+
       // Query 4: Recent History List
       pool.query(
         `SELECT 
@@ -67,11 +61,11 @@ router.get('/', requireAuth, async (req, res) => {
             event_name
          FROM v_volunteer_history
          WHERE user_id = $1
-         ORDER BY participation_date DESC
-         LIMIT 5`,
+         ORDER BY participation_date DESC`,
         [userId]
       ),
-      // Query 5: Volunteer Statistics - FIX: Included 'unknown' status
+
+      // Query 5: Volunteer Statistics 
       pool.query(
       `SELECT 
         COUNT(event_id)::int AS total_events, 
@@ -81,36 +75,33 @@ router.get('/', requireAuth, async (req, res) => {
       WHERE user_id = $1;`,
         [userId]
       ),
+
       //Query 6: Total Active/Future Opportunities (GLOBAL COUNT)
       pool.query(
         `SELECT 
           COUNT(event_id)::int AS total_active_opportunities
         FROM events
-        WHERE event_date >= CURRENT_DATE;`
+        WHERE event_date >= CURRENT_DATE
+          AND volunteer_needed > 0
+          AND manager_user_id IS NOT NULL;`
       ),
     ]);
     
-    // --- Data Extraction and Processing ---
-    
-    console.log("Stats Query Raw Result:", statsRes.rows);
-    
+        
     const stats = statsRes.rows[0] || { total_events: 0, completed_events: 0, total_hours: 0 };
     
     const totalHours = Number(stats.total_hours);
-
-    console.log("Parsed totalHours:", totalHours);
 
     const completionRate = stats.total_events > 0
       ? Math.round((stats.completed_events / stats.total_events) * 100)
       : 0;
 
-    // Extracting the global active opportunities count
     const totalActiveOpportunities = activeOpportunitiesRes.rows[0]?.total_active_opportunities ?? 0;
     
     res.json({
       profile: profileRes.rows[0] || null,
       notifications: { unread: unreadRes.rows[0]?.unread ?? 0 },
-      upcomingEvents: upcomingRes.rows, // User's upcoming events (limited to 5)
+      upcomingEvents: upcomingRes.rows, 
       recentHistory: histRes.rows,
       statistics: {
         totalEvents: stats.total_events,
@@ -118,10 +109,9 @@ router.get('/', requireAuth, async (req, res) => {
         totalHours: totalHours, 
         completionRate,
       },
-      // 🆕 New object to clearly separate the two counts for the frontend
       dashboardCounts: {
-          upcomingSignedUp: upcomingRes.rows.length, // From Query 3: User's signed-up, future events
-          totalActive: totalActiveOpportunities,     // From Query 6: ALL future events
+          upcomingSignedUp: upcomingRes.rows.length, 
+          totalActive: totalActiveOpportunities,     
       }
     });
   } catch (err) {
