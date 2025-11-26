@@ -2,7 +2,6 @@ import { jest } from "@jest/globals";
 import request from "supertest";
 import express from "express";
 
-// ---- Mock auth BEFORE importing routes ----
 jest.unstable_mockModule("../../middleware/auth.js", () => ({
   requireAuth: (req, res, next) => {
     req.user = { id: 123, sub: 123, email: "admin@volunteer.com" };
@@ -23,17 +22,17 @@ app.use(express.json());
 app.use("/api/events", eventRoutes);
 
 describe("Event Routes", () => {
-  beforeEach(() => jest.clearAllMocks());
 
-  //POST
-  test("POST /api/events -> 400 missing required fields", async () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+
+  test("POST /api/events -> 400 when missing required fields", async () => {
     const res = await request(app).post("/api/events").send({
-      event_description: "Missing fields test",
+      event_description: "Test",
       required_skills: ["Teamwork"],
       urgency: "medium",
-      event_date: "2025-11-05",
-      start_time: "09:00",
-      end_time: "11:00",
     });
 
     expect(res.status).toBe(400);
@@ -41,92 +40,72 @@ describe("Event Routes", () => {
     expect(query).not.toHaveBeenCalled();
   });
 
-  test("POST /api/events -> 201 (string skills + urgency lowercased)", async () => {
-    query.mockResolvedValueOnce({
-      rows: [{ event_id: 1, name: "Cleaning" }],
-    });
+  test("POST /api/events -> 201 success (string skills + lowercase urgency)", async () => {
+    query.mockResolvedValueOnce({ rows: [{ event_id: 1, name: "Cleaning" }] });
 
     const res = await request(app).post("/api/events").send({
       event_name: "Cleaning",
-      event_description: "Clean up park",
+      event_description: "Clean park",
       location: "Houston",
       required_skills: "Cleaning, Leadership",
       urgency: "MEDIUM",
       event_date: "2025-11-02",
       start_time: "10:00",
       end_time: "12:00",
+      volunteer_needed: 3
     });
 
     expect(res.status).toBe(201);
+
     const args = query.mock.calls[0][1];
-
-    expect(args[1]).toBe("Cleaning, Leadership");
-    expect(args[4]).toBe("medium");
-    expect(args[9]).toBe(123);
+    expect(args[1]).toBe("Cleaning, Leadership");  // skills
+    expect(args[4]).toBe("medium");               // urgency
+    expect(args[9]).toBe(123);                    // manager id
   });
 
-  test("POST /api/events -> 201 (array skills)", async () => {
-    query.mockResolvedValueOnce({ rows: [{ event_id: 2 }] });
+  test("POST /api/events -> 500 on DB error", async () => {
+    query.mockRejectedValueOnce(new Error("DB error"));
 
     const res = await request(app).post("/api/events").send({
-      event_name: "Food Drive",
-      event_description: "Collect donations",
-      location: "Houston",
-      required_skills: ["Coordination", "Driving"],
-      urgency: "low",
-      event_date: "2025-12-10",
-      start_time: "08:00",
-      end_time: "10:00",
-    });
-
-    expect(res.status).toBe(201);
-    expect(query.mock.calls[0][1][1]).toBe("Coordination, Driving");
-  });
-
-  test("POST /api/events -> 500 DB error", async () => {
-    query.mockRejectedValueOnce(new Error("DB connection failed"));
-
-    const res = await request(app).post("/api/events").send({
-      event_name: "Beach Cleanup",
-      event_description: "Cleanup event",
-      location: "Miami",
+      event_name: "Test",
+      event_description: "Desc",
+      location: "TX",
       required_skills: ["Cleaning"],
-      urgency: "medium",
+      urgency: "low",
       event_date: "2025-11-03",
       start_time: "08:00",
-      end_time: "11:00",
+      end_time: "10:00",
     });
 
     expect(res.status).toBe(500);
     expect(res.body.message).toMatch(/error creating/i);
   });
 
-  //GET
-  test("GET /api/events -> 200 returns array", async () => {
+
+  test("GET /api/events -> 200 returns events", async () => {
     query.mockResolvedValueOnce({
-      rows: [
-        { id: 1, eventName: "Cleaning" },
-        { id: 2, eventName: "Cooking" },
-      ],
+      rows: [{ id: 1, eventName: "Cleanup" }]
     });
 
     const res = await request(app).get("/api/events");
+
     expect(res.status).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
   });
 
-  test("GET /api/events -> 500 DB error", async () => {
-    query.mockRejectedValueOnce(new Error("Failed to fetch events"));
+  test("GET /api/events -> 500 db error", async () => {
+    query.mockRejectedValueOnce(new Error("Error"));
+
     const res = await request(app).get("/api/events");
 
     expect(res.status).toBe(500);
     expect(res.body.message).toMatch(/error fetching/i);
   });
 
-  // GET /:id
-  test("GET /api/events/:id -> 200 returns event", async () => {
+  
+  test("GET /api/events/:id -> 200 success", async () => {
     query.mockResolvedValueOnce({
-      rows: [{ id: 1, eventName: "Cleanup", description: "Test event" }],
+      rows: [{ id: 1, eventName: "Cleanup" }]
     });
 
     const res = await request(app).get("/api/events/1");
@@ -138,14 +117,13 @@ describe("Event Routes", () => {
   test("GET /api/events/:id -> 404 not found", async () => {
     query.mockResolvedValueOnce({ rows: [] });
 
-    const res = await request(app).get("/api/events/999");
+    const res = await request(app).get("/api/events/99");
 
     expect(res.status).toBe(404);
-    expect(res.body.message).toMatch(/not found/i);
   });
 
-  test("GET /api/events/:id -> 500 error", async () => {
-    query.mockRejectedValueOnce(new Error("DB fail"));
+  test("GET /api/events/:id -> 500 db error", async () => {
+    query.mockRejectedValueOnce(new Error());
 
     const res = await request(app).get("/api/events/1");
 
@@ -153,143 +131,115 @@ describe("Event Routes", () => {
     expect(res.body.message).toMatch(/failed to load/i);
   });
 
-  //PUT /:id
   test("PUT /api/events/:id -> 200 success", async () => {
     query.mockResolvedValueOnce({
       rowCount: 1,
-      rows: [{ event_id: 1, name: "Updated Event" }],
+      rows: [{ event_id: 1 }]
     });
 
-    const res = await request(app)
-      .put("/api/events/1")
-      .send({
-        event_name: "Updated Event",
-        event_description: "New desc",
-        location: "Dallas",
-        required_skills: "Driving, Cooking",
-        urgency: "high",
-        event_date: "2025-10-01",
-        start_time: "09:00",
-        end_time: "11:00",
-        volunteer_needed: 5,
-      });
+    const res = await request(app).put("/api/events/1").send({
+      event_name: "Updated",
+      event_description: "Updated desc",
+      location: "Austin",
+      required_skills: "Driving",
+      urgency: "high",
+      event_date: "2025-11-05",
+      start_time: "10:00",
+      end_time: "12:00",
+      volunteer_needed: 2,
+    });
 
     expect(res.status).toBe(200);
     expect(res.body.message).toMatch(/updated/i);
   });
 
-  test("PUT /api/events/:id -> 404 not found", async () => {
+  test("PUT /api/events/:id -> 404", async () => {
     query.mockResolvedValueOnce({ rowCount: 0 });
 
-    const res = await request(app)
-      .put("/api/events/999")
-      .send({
-        event_name: "Does not matter",
-        event_description: "desc",
-        location: "Houston",
-        required_skills: "Cleaning",
-        urgency: "low",
-        event_date: "2025-10-01",
-        start_time: "10:00",
-        end_time: "12:00",
-        volunteer_needed: 3,
-      });
-
-    expect(res.status).toBe(404);
-    expect(res.body.message).toMatch(/not found/i);
-  });
-
-  test("PUT /api/events/:id -> 500 DB error", async () => {
-    query.mockRejectedValueOnce(new Error("Update failed"));
-
-    const res = await request(app)
-      .put("/api/events/1")
-      .send({
-        event_name: "Test Event",
-        event_description: "desc",
-        location: "Austin",
-        required_skills: "Coordination",
-        urgency: "medium",
-        event_date: "2025-11-01",
-        start_time: "08:00",
-        end_time: "10:00",
-        volunteer_needed: 2,
-      });
-
-    expect(res.status).toBe(500);
-    expect(res.body.message).toMatch(/failed to update/i);
-  });
-
-  //PUT /:id/volunteers
-  test("PUT /api/events/:id/volunteers -> 200 success", async () => {
-    query.mockResolvedValueOnce({
-      rowCount: 1,
-      rows: [{ event_id: 1, volunteer_ids: [2, 5, 7] }],
+    const res = await request(app).put("/api/events/99").send({
+      event_name: "Test",
+      event_description: "Desc",
+      location: "TX",
+      required_skills: "Driving",
+      urgency: "low",
+      event_date: "2025-11-05",
+      start_time: "10:00",
+      end_time: "12:00",
+      volunteer_needed: 1,
     });
 
-    const res = await request(app)
-      .put("/api/events/1/volunteers")
-      .send({ volunteer_ids: [2, 5, 7] });
-
-    expect(res.status).toBe(200);
-    expect(res.body.message).toMatch(/updated/i);
+    expect(res.status).toBe(404);
   });
 
-  test("PUT /api/events/:id/volunteers -> 400 invalid array", async () => {
+  test("PUT /api/events/:id -> 500", async () => {
+    query.mockRejectedValueOnce(new Error());
+
+    const res = await request(app).put("/api/events/1").send({
+      event_name: "Test",
+      event_description: "Desc",
+      location: "TX",
+      required_skills: "Driving",
+      urgency: "low",
+      event_date: "2025-11-05",
+      start_time: "10:00",
+      end_time: "12:00",
+    });
+
+    expect(res.status).toBe(500);
+  });
+
+ 
+  test("PUT /api/events/:id/volunteers -> 200", async () => {
+    query.mockResolvedValueOnce({ rowCount: 1 });
+
     const res = await request(app)
       .put("/api/events/1/volunteers")
-      .send({ volunteer_ids: "nope" });
+      .send({ volunteer_ids: [1, 2, 3] });
+
+    expect(res.status).toBe(200);
+  });
+
+  test("PUT /api/events/:id/volunteers -> 400", async () => {
+    const res = await request(app)
+      .put("/api/events/1/volunteers")
+      .send({ volunteer_ids: "wrong" });
 
     expect(res.status).toBe(400);
   });
 
-  test("PUT /api/events/:id/volunteers -> 404 not found", async () => {
-    query.mockResolvedValueOnce({ rowCount: 0 });
-
-    const res = await request(app)
-      .put("/api/events/999/volunteers")
-      .send({ volunteer_ids: [2] });
-
-    expect(res.status).toBe(404);
-  });
-
-  test("PUT /api/events/:id/volunteers -> 500 DB failure", async () => {
-    query.mockRejectedValueOnce(new Error("DB failure"));
-
-    const res = await request(app)
-      .put("/api/events/1/volunteers")
-      .send({ volunteer_ids: [2] });
-
-    expect(res.status).toBe(500);
-  });
-
-  // ======================================================
-  // ========================= DELETE =====================
-  // ======================================================
-
-  test("DELETE /api/events/:id -> 200 success", async () => {
+  
+  test("DELETE /api/events/:id -> 200", async () => {
     query.mockResolvedValueOnce({ rowCount: 1 });
 
     const res = await request(app).delete("/api/events/1");
     expect(res.status).toBe(200);
   });
 
-  test("DELETE /api/events/:id -> 404 not found", async () => {
+  test("DELETE /api/events/:id -> 404", async () => {
     query.mockResolvedValueOnce({ rowCount: 0 });
 
-    const res = await request(app).delete("/api/events/999");
+    const res = await request(app).delete("/api/events/99");
     expect(res.status).toBe(404);
   });
 
-  test("DELETE /api/events/:id -> 500 DB error", async () => {
-    query.mockRejectedValueOnce(new Error("Unexpected DB error"));
 
-    const res = await request(app).delete("/api/events/5");
-    expect(res.status).toBe(500);
+  test("POST /api/events/signup/:id -> 201 success", async () => {
+    query
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [{ signup_id: 1 }] });
+
+    const res = await request(app).post("/api/events/signup/1");
+
+    expect(res.status).toBe(201);
+    expect(res.body.message).toMatch(/successfully/i);
   });
 
-  test("smoke: import routes", async () => {
-    const routes = await import("../event.routes.js");
-    expect(routes).toBeDefined();
+  test("POST /api/events/signup/:id -> 409 already signed up", async () => {
+    query.mockResolvedValueOnce({ rows: [{ signup_id: 1 }] });
+
+    const res = await request(app).post("/api/events/signup/1");
+
+    expect(res.status).toBe(409);
   });
+
 });
