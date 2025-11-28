@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import './manager_dashboard.css';
-import { dashboardApi } from '../../lib/managerApi.js';
+import { dashboardApi, profileApi } from '../../lib/managerApi.js';
 import Header from '../../assets/header_after/header_after.jsx'
 
 function ManagerDashboard() {
@@ -14,12 +14,23 @@ function ManagerDashboard() {
     recentMatches: [],
     notifications: []
   });
+  const [firstName, setFirstName] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchDashboardData();
+    fetchUserProfile();
   }, []);
+
+  const fetchUserProfile = async () => {
+    try {
+      const profile = await profileApi.getMyProfile();
+      setFirstName(profile.first_name || '');
+    } catch (err) {
+      console.error('Error fetching profile:', err);
+    }
+  };
 
   const fetchDashboardData = async () => {
     try {
@@ -79,7 +90,10 @@ function ManagerDashboard() {
       <Header/>
       <div style={{ marginTop: '100px' }}>
         <div className="dashboard-header">
-          <h1>Manager Dashboard</h1>
+          <div className="welcome-section">
+            {firstName && <h2 className="welcome-text">Welcome, {firstName}</h2>}
+            <h1>Manager Dashboard</h1>
+          </div>
           <div className="dashboard-actions">
             <button onClick={fetchDashboardData} className="refresh-btn">
               Refresh Data
@@ -97,6 +111,25 @@ function ManagerDashboard() {
 
 // Overview Tab Component
 function OverviewTab({ data }) {
+  // Format date to be more readable
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      const options = { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      };
+      return date.toLocaleString('en-US', options);
+    } catch (error) {
+      return dateString;
+    }
+  };
+
   return (
     <div className="overview-tab">
       <div className="stats-grid">
@@ -125,7 +158,7 @@ function OverviewTab({ data }) {
             {data.recentEvents.map(event => (
               <div key={event.id} className="event-item">
                 <div className="event-name">{event.eventName}</div>
-                <div className="event-date">{event.date}</div>
+                <div className="event-date">{formatDate(event.date)}</div>
                 <div className="event-location">{event.location}</div>
               </div>
             ))}
