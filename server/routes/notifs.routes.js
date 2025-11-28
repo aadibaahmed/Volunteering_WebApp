@@ -11,6 +11,7 @@ import {
   // getNotificationStats
 } from '../notifications/get_notifs.js';
 import { insert_on_register } from '../notifications/insert_notifs.js';
+import { insert_on_soon } from '../notifications/insert_soon.js';
 
 const router = express.Router();
 
@@ -120,8 +121,6 @@ router.put('/:id/read', requireAuth, async (req, res) => {
 //   }
 // });
 router.post('/insert_notif_on_register', requireAuth, async (req, res) => {
-
-  console.log("Im Here")
   try {
     const { user_id, message, unread = true, type = 'welcome', priority = 'low' } = req.body;
 
@@ -138,4 +137,25 @@ router.post('/insert_notif_on_register', requireAuth, async (req, res) => {
     res.status(500).json({ error: 'Failed to insert notification' });
   }
 });
+
+router.post('/insert_notif', requireAuth, async (req, res) => {
+
+  console.log("EVENT DUE SOON!!!!!!!")
+  try {
+    const { user_id, message, unread = true, type = 'Event', priority = 'high' } = req.body;
+
+    if (!user_id || !message?.trim()) {
+      return res.status(400).json({ error: 'user_id and message are required' });
+    }
+    const newNotif = await insert_on_soon(user_id, message, unread, type, priority);
+
+    res.status(201).json({ message: 'Notification created successfully', notification: newNotif });
+  } catch (error) {
+    console.error('Error inserting notification on register:', error);
+    res.status(500).json({ error: 'Failed to insert notification' });
+  }
+});
+
+
+
 export default router;

@@ -18,7 +18,38 @@ const VolunteerDashboard = () => {
   const [error, setError] = useState(null);
   const [upcoming, setUpcoming] = useState([]);
   const [loading, setLoading] = useState(false);
+  // const [event_dates, setEventDates] = useState();
 
+  const today = new Date();
+
+  console.log(today)
+  let event_day;
+
+  const get_diff = async (event_day) => {
+    const eventDate = new Date(event_day);
+    const diffMs = eventDate - today;
+    const diffDays = diffMs / (1000 * 60 * 60 * 24);
+    const user = JSON.parse(localStorage.getItem("user"));
+
+
+    console.log(user)
+
+    if (diffDays <= 2 && diffDays >= 0) {
+      try {
+        const res = await api.post('/insert_notif', {
+          user_id: user.id,
+          message: "There is an upcoming event that you are signed up for!",
+          unread: true,
+          type: "Event",
+          priority: "high",
+        });
+        console.log("Notification inserted:", res.data);
+      } catch (err) {
+        console.error("Error inserting notification:", err);
+      }
+    }
+  };
+  
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
@@ -39,12 +70,19 @@ const VolunteerDashboard = () => {
         const upcoming = Array.isArray(data.upcomingEvents) ? data.upcomingEvents : [];
         const dashboardCounts = data.dashboardCounts || {};
         const unread = data.notifications?.unread ?? 0;
+        
 
         if (profile && profile.completed === false) {
           navigate('/account');
           return;
         }
         setUpcoming(upcoming)
+
+        upcoming.forEach(event => {
+          if (event.event_date) {
+            get_diff(event.event_date);
+          }
+        });
 
         setFirstName(profile.first_name || "");
         setLastName(profile.last_name || "");
