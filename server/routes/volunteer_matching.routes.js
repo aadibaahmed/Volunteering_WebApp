@@ -20,7 +20,7 @@ async function getAllVolunteers() {
         COALESCE(up.last_name, '') AS last_name,
         COALESCE(up.city, '') AS city,
         COALESCE(up.state_code, '') AS state_code,
-        COALESCE(up.preferences, ARRAY[]::text[]) AS preferences,
+        up.preferences,
         COALESCE(up.completed, false) AS completed
       FROM user_credentials uc
       LEFT JOIN user_profile up ON uc.user_id = up.user_id
@@ -47,6 +47,22 @@ async function getAllVolunteers() {
         ORDER BY avail_date
       `, [row.id]);
 
+      // Parse preferences - handle both array and text formats
+      let preferences = [];
+      if (row.preferences) {
+        if (Array.isArray(row.preferences)) {
+          preferences = row.preferences;
+        } else if (typeof row.preferences === 'string') {
+          // If it's a string, try to parse as JSON or split by comma
+          try {
+            preferences = JSON.parse(row.preferences);
+          } catch (e) {
+            // If not JSON, split by comma
+            preferences = row.preferences.split(',').map(p => p.trim()).filter(Boolean);
+          }
+        }
+      }
+
       volunteers.push({
         id: row.id,
         email: row.email,
@@ -56,7 +72,7 @@ async function getAllVolunteers() {
         state_code: row.state_code,
         skills: skillsResult.rows.map(r => r.name),
         availability: availResult.rows.map(r => r.avail_date),
-        preferences: row.preferences || [],
+        preferences: preferences,
         completed: row.completed
       });
     }

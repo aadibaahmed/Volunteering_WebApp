@@ -26,15 +26,25 @@
 .modal-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   padding: 20px;
   border-bottom: 1px solid #e0e0e0;
+}
+
+.modal-header > div {
+  flex: 1;
 }
 
 .modal-header h2 {
   margin: 0;
   color: #2A3642;
   font-weight: 700;
+}
+
+.modal-header p {
+  margin: 5px 0 0 0;
+  font-size: 0.9em;
+  color: #7f8c8d;
 }
 
 .modal-close-btn {
