@@ -461,7 +461,9 @@
 
 .matching-tab h3 {
   margin: 0;
-  color: #2c3e50;
+  color: var(--dark);
+  font-size: 1.8rem;
+  font-weight: 700;
 }
 
 .matches-list {
@@ -520,37 +522,37 @@
 }
 
 .status.assigned {
-  color: #27ae60;
+  color: #FFBB00;
   font-weight: bold;
 }
 
 .status.pending {
-  color: #f39c12;
+  color: #6A89A7;
   font-weight: bold;
 }
 
 .status.completed {
-  color: #3498db;
+  color: #155724;
   font-weight: bold;
 }
 
 .status.cancelled {
-  color: #e74c3c;
+  color: #95a5a6;
   font-weight: bold;
 }
 
 .score-high {
-  color: #27ae60;
+  color: #FFBB00;
   font-weight: bold;
 }
 
 .score-medium {
-  color: #f39c12;
+  color: #6A89A7;
   font-weight: bold;
 }
 
 .score-low {
-  color: #e74c3c;
+  color: #95a5a6;
   font-weight: bold;
 }
 
