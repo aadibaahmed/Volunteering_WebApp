@@ -23,32 +23,43 @@ const VolunteerDashboard = () => {
   const today = new Date();
 
   console.log(today)
-  let event_day;
 
-  const get_diff = async (event_day) => {
-    const eventDate = new Date(event_day);
-    const diffMs = eventDate - today;
-    const diffDays = diffMs / (1000 * 60 * 60 * 24);
-    const user = JSON.parse(localStorage.getItem("user"));
+  const get_diff = async (event_day, event_id, user_id) => {
+  const eventDate = new Date(event_day);
+  const diffMs = eventDate - today;
+  const diffDays = diffMs / (1000 * 60 * 60 * 24);
 
+  const notifiedData = JSON.parse(localStorage.getItem("notifiedEventsByUser")) || {};
 
-    console.log(user)
+  const userNotifiedEvents = notifiedData[user_id] || [];
 
-    if (diffDays <= 2 && diffDays >= 0) {
-      try {
-        const res = await api.post('/insert_notif', {
-          user_id: user.id,
-          message: "There is an upcoming event that you are signed up for!",
-          unread: true,
-          type: "Event",
-          priority: "high",
-        });
-        console.log("Notification inserted:", res.data);
-      } catch (err) {
-        console.error("Error inserting notification:", err);
-      }
+  if (userNotifiedEvents.includes(event_id)) {
+    return;
+  }
+
+  if (diffDays <= 2 && diffDays >= 0) {
+    try {
+      const res = await api.post('/insert_notif', {
+        user_id,
+        event_id,
+        message: "There is an upcoming event that you are signed up for!",
+        unread: true,
+        type: "Event",
+        priority: "high",
+      });
+
+      console.log("Notification inserted:", res.data);
+
+      notifiedData[user_id] = [...userNotifiedEvents, event_id];
+      localStorage.setItem("notifiedEventsByUser", JSON.stringify(notifiedData));
+
+    } catch (err) {
+      console.error("Error inserting notification:", err);
     }
-  };
+  }
+};
+
+
   
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -78,12 +89,6 @@ const VolunteerDashboard = () => {
         }
         setUpcoming(upcoming)
 
-        upcoming.forEach(event => {
-          if (event.event_date) {
-            get_diff(event.event_date);
-          }
-        });
-
         setFirstName(profile.first_name || "");
         setLastName(profile.last_name || "");
 
@@ -108,6 +113,19 @@ const VolunteerDashboard = () => {
 
     fetchDashboardData();
   }, [navigate]);
+
+  useEffect(() => {
+    if (upcoming.length === 0) return;
+
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!user) return;
+
+    upcoming.forEach(event => {
+      if (event.event_date) {
+        get_diff(event.event_date, event.event_id, user.id);
+      }
+    });
+  }, [upcoming]);
 
   return (
     <div className="volunteer-dashboard-page">

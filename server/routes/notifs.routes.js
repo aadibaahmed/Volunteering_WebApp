@@ -142,12 +142,12 @@ router.post('/insert_notif', requireAuth, async (req, res) => {
 
   console.log("EVENT DUE SOON!!!!!!!")
   try {
-    const { user_id, message, unread = true, type = 'Event', priority = 'high' } = req.body;
+    const { user_id, event_id, message, unread = true, type = 'Event', priority = 'high' } = req.body;
 
     if (!user_id || !message?.trim()) {
       return res.status(400).json({ error: 'user_id and message are required' });
     }
-    const newNotif = await insert_on_soon(user_id, message, unread, type, priority);
+    const newNotif = await insert_on_soon(user_id, event_id, message, unread, type, priority);
 
     res.status(201).json({ message: 'Notification created successfully', notification: newNotif });
   } catch (error) {
