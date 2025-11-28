@@ -195,7 +195,7 @@ function CalendarView({ events }) {
       <div className="calendar-container">
         <div className="calendar-header">
           <button onClick={prevMonth} className="calendar-nav-btn">‹</button>
-          <h2>{monthNames[month]} {year}</h2>
+          <h2 className="calendar-month-year">{monthNames[month]} {year}</h2>
           <button onClick={nextMonth} className="calendar-nav-btn">›</button>
         </div>
         
@@ -310,29 +310,130 @@ function CalendarView({ events }) {
 
 // List View Component
 function ListView({ events, onDelete, onEdit }) {
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Format date to readable format
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      const options = { year: 'numeric', month: 'long', day: 'numeric' };
+      return date.toLocaleDateString('en-US', options);
+    } catch (error) {
+      return dateString;
+    }
+  };
+
+  // Format time to 12-hour format
+  const formatTime = (timeString) => {
+    if (!timeString) return '';
+    try {
+      // Handle time in HH:MM:SS or HH:MM format
+      const [hours, minutes] = timeString.split(':');
+      const hour = parseInt(hours, 10);
+      const minute = minutes || '00';
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const displayHour = hour % 12 || 12;
+      return `${displayHour}:${minute} ${ampm}`;
+    } catch (error) {
+      return timeString;
+    }
+  };
+
+  // Filter events based on search query
+  const filteredEvents = events.filter(event => {
+    if (!searchQuery.trim()) return true;
+    
+    const query = searchQuery.toLowerCase();
+    const eventName = (event.eventName || '').toLowerCase();
+    const location = (event.location || '').toLowerCase();
+    const dateStr = (event.date || '').toLowerCase();
+    
+    // Check event name
+    if (eventName.includes(query)) return true;
+    
+    // Check location
+    if (location.includes(query)) return true;
+    
+    // Check date
+    if (dateStr.includes(query)) return true;
+    
+    // Check skills
+    if (event.skills) {
+      const skillsStr = Array.isArray(event.skills) 
+        ? event.skills.join(' ').toLowerCase() 
+        : event.skills.toLowerCase();
+      if (skillsStr.includes(query)) return true;
+    }
+    
+    return false;
+  });
+
   return (
-    <div className="events-list">
-      {events.map(event => (
-        <div key={event.id} className="event-card">
-          <div className="event-header">
-            <h4>{event.eventName}</h4>
-            <span className={`urgency ${event.urgency?.toLowerCase() || ''}`}>
-              {event.urgency}
-            </span>
-          </div>
-          <div className="event-details">
-            <p><strong>Date:</strong> {event.date}</p>
-            <p><strong>Time:</strong> {event.startTime} - {event.endTime}</p>
-            <p><strong>Location:</strong> {event.location}</p>
-            <p><strong>Skills Required:</strong> {Array.isArray(event.skills) ? event.skills.join(', ') : event.skills}</p>
-          </div>
-          <div className="event-actions">
-            <button className="edit-btn" onClick={() => onEdit(event)}>Edit</button>
-            <button className="delete-btn" onClick={() => onDelete(event.id)}>Delete</button>
-          </div>
+    <>
+      {/* Search Bar */}
+      <div className="event-search-bar-container">
+        <div className="event-search-bar">
+          <span className="search-icon">🔍</span>
+          <input
+            type="text"
+            className="event-search-input"
+            placeholder="Search events by name, date, location, or skills..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            autoComplete="off"
+            style={{
+              color: '#2A3642',
+              WebkitTextFillColor: '#2A3642',
+              backgroundColor: 'white',
+              opacity: 1,
+              flex: 1
+            }}
+          />
+          {searchQuery && (
+            <button 
+              className="event-search-clear-btn" 
+              onClick={() => setSearchQuery('')}
+              style={{
+                flexShrink: 0,
+                width: 'auto'
+              }}
+            >
+              Clear
+            </button>
+          )}
         </div>
-      ))}
-    </div>
+      </div>
+
+      {filteredEvents.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+          <p>No events match your search.</p>
+        </div>
+      ) : (
+        <div className="events-list">
+          {filteredEvents.map(event => (
+            <div key={event.id} className="event-card">
+              <div className="event-header">
+                <h4>{event.eventName}</h4>
+                <span className={`urgency ${event.urgency?.toLowerCase() || ''}`}>
+                  {event.urgency}
+                </span>
+              </div>
+              <div className="event-details">
+                <p><strong>Date:</strong> {formatDate(event.date)}</p>
+                <p><strong>Time:</strong> {formatTime(event.startTime)} - {formatTime(event.endTime)}</p>
+                <p><strong>Location:</strong> {event.location}</p>
+                <p><strong>Skills Required:</strong> {Array.isArray(event.skills) ? event.skills.join(', ') : event.skills}</p>
+              </div>
+              <div className="event-actions">
+                <button className="edit-btn" onClick={() => onEdit(event)}>Edit</button>
+                <button className="delete-btn" onClick={() => onDelete(event.id)}>Delete</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </>
   );
 }
 

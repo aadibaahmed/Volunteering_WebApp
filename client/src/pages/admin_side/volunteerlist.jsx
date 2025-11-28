@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { volunteerApi } from '../../lib/managerApi';
 import Header from '../../assets/header_after/header_after.jsx';
-import './volunteerlist.css';
 import './Manager_Dashboard_Tabs/events_modal.css';
+import './volunteerlist.css';
 
 function VolunteerList() {
   const [volunteers, setVolunteers] = useState([]);
@@ -15,6 +15,7 @@ function VolunteerList() {
   const [viewingVolunteer, setViewingVolunteer] = useState(null);
   const [profileData, setProfileData] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchVolunteers();
@@ -25,7 +26,25 @@ function VolunteerList() {
     setError(null);
     try {
       const data = await volunteerApi.getAllVolunteers();
-      setVolunteers(Array.isArray(data) ? data : []);
+      const volunteersArray = Array.isArray(data) ? data : [];
+      
+      // Fetch profiles for each volunteer to enable search by location and skills
+      const volunteersWithProfiles = await Promise.all(
+        volunteersArray.map(async (volunteer) => {
+          try {
+            const profile = await volunteerApi.getVolunteerProfile(volunteer.volunteerId);
+            return {
+              ...volunteer,
+              profile: profile
+            };
+          } catch (err) {
+            // If profile fetch fails, just return volunteer without profile
+            return volunteer;
+          }
+        })
+      );
+      
+      setVolunteers(volunteersWithProfiles);
     } catch (err) {
       console.error('Error fetching volunteers:', err);
       setError('Failed to load volunteers. Please try again.');
@@ -72,6 +91,46 @@ function VolunteerList() {
     setShowEditModal(true);
   };
 
+  // Filter volunteers based on search query
+  const filteredVolunteers = volunteers.filter(volunteer => {
+    if (!searchQuery.trim()) return true;
+    
+    const query = searchQuery.toLowerCase();
+    const volunteerName = (volunteer.volunteerName || '').toLowerCase();
+    const email = (volunteer.email || '').toLowerCase();
+    
+    // Check if name matches (full name or parts)
+    if (volunteerName.includes(query)) return true;
+    
+    // Check if email matches
+    if (email.includes(query)) return true;
+    
+    // Check profile data if available
+    if (volunteer.profile) {
+      const firstName = (volunteer.profile.first_name || '').toLowerCase();
+      const lastName = (volunteer.profile.last_name || '').toLowerCase();
+      const city = (volunteer.profile.city || '').toLowerCase();
+      const state = (volunteer.profile.state_code || '').toLowerCase();
+      const address = (volunteer.profile.address1 || '').toLowerCase();
+      
+      // Check first name or last name
+      if (firstName.includes(query) || lastName.includes(query)) return true;
+      
+      // Check location (city, state, or address)
+      if (city.includes(query) || state.includes(query) || address.includes(query)) return true;
+      
+      // Check skills
+      if (volunteer.profile.skills && Array.isArray(volunteer.profile.skills)) {
+        const hasMatchingSkill = volunteer.profile.skills.some(skill => 
+          skill.toLowerCase().includes(query)
+        );
+        if (hasMatchingSkill) return true;
+      }
+    }
+    
+    return false;
+  });
+
   if (loading) {
     return (
       <div>
@@ -103,8 +162,12 @@ function VolunteerList() {
           <h2>Volunteer Management</h2>
           <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
             <div className="volunteer-count">
-              <span className="count-number">{volunteers.length}</span>
-              <span className="count-label">Volunteers</span>
+              <span className="count-number">
+                {searchQuery ? filteredVolunteers.length : volunteers.length}
+              </span>
+              <span className="count-label">
+                {searchQuery ? 'Found' : 'Volunteers'}
+              </span>
             </div>
             <button className="create-event-btn" onClick={() => setShowModal(true)}>
               Add Volunteer
@@ -112,13 +175,51 @@ function VolunteerList() {
           </div>
         </div>
 
+        {/* Search Bar */}
+        <div className="search-bar-container">
+          <div className="search-bar">
+            <span className="search-icon">🔍</span>
+            <input
+              type="text"
+              className="volunteer-search-input"
+              placeholder="Search volunteers by name, email, location, or skills..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              autoComplete="off"
+              style={{
+                color: '#2A3642',
+                WebkitTextFillColor: '#2A3642',
+                backgroundColor: 'white',
+                opacity: 1,
+                flex: 1
+              }}
+            />
+            {searchQuery && (
+              <button 
+                className="volunteer-search-clear-btn" 
+                onClick={() => setSearchQuery('')}
+                style={{
+                  flexShrink: 0,
+                  width: 'auto'
+                }}
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        </div>
+
         {volunteers.length === 0 ? (
           <div className="no-volunteers">
             <p>No volunteers found.</p>
           </div>
+        ) : filteredVolunteers.length === 0 ? (
+          <div className="no-volunteers">
+            <p>No volunteers match your search.</p>
+          </div>
         ) : (
           <div className="volunteers-grid">
-            {volunteers.map(volunteer => (
+            {filteredVolunteers.map(volunteer => (
               <div key={volunteer.volunteerId} className="volunteer-card">
                 <div className="volunteer-card-header">
                   <div className="volunteer-avatar">
@@ -152,11 +253,27 @@ function VolunteerList() {
                   </div>
                 </div>
                 <div className="volunteer-actions">
-                  <button className="action-btn view-btn" onClick={() => handleViewDetails(volunteer)}>
+                  <button 
+                    className="volunteer-view-details-btn" 
+                    onClick={() => handleViewDetails(volunteer)}
+                    style={{
+                      backgroundColor: '#FFBB00',
+                      color: '#2A3642',
+                      border: 'none'
+                    }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.backgroundColor = '#e6a600';
+                      e.currentTarget.style.color = 'white';
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.backgroundColor = '#FFBB00';
+                      e.currentTarget.style.color = '#2A3642';
+                    }}
+                  >
                     View Details
                   </button>
-                  <button className="edit-btn" onClick={() => handleEdit(volunteer)}>Edit</button>
-                  <button className="delete-btn" onClick={() => handleDelete(volunteer.volunteerId)}>Delete</button>
+                  <button className="volunteer-edit-btn" onClick={() => handleEdit(volunteer)}>Edit</button>
+                  <button className="volunteer-delete-btn" onClick={() => handleDelete(volunteer.volunteerId)}>Delete</button>
                 </div>
               </div>
             ))}
