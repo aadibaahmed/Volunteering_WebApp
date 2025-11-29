@@ -238,12 +238,47 @@ router.delete("/:id", requireAuth, async (req, res) => {
   }
 });
 
+// router.post("/signup/:id", requireAuth, async (req, res) => {
+//   const eventId = req.params.id;
+//   const userId = req.user.sub; 
+  
+//   try {
+//     // 1. Check if the signup already exists to prevent duplicates
+//     const checkResult = await query(
+//       `SELECT signup_id FROM volunteer_signups
+//        WHERE user_id = $1 AND event_id = $2`,
+//       [userId, eventId]
+//     );
+
+//     if (checkResult.rows.length > 0) {
+//       // If the volunteer is already signed up, return a 409 Conflict error
+//       return res.status(409).json({ message: "Volunteer is already signed up for this event." });
+//     }
+    
+//     // 2. Insert the new signup record
+//     const result = await query(
+//       `INSERT INTO volunteer_signups 
+//       (user_id, event_id, signup_status, signup_date)
+//        VALUES ($1, $2, 'signed_up', NOW())
+//        RETURNING *`,
+//       [userId, eventId]
+//     );
+
+//     res.status(201).json({
+//       message: "Successfully signed up!",
+//       signup: result.rows[0]
+//     });
+
+//   } catch (err) {
+//     console.error("Volunteer signup error:", err);
+//     res.status(500).json({ message: "Error processing volunteer signup" });
+//   }
+// });
 router.post("/signup/:id", requireAuth, async (req, res) => {
   const eventId = req.params.id;
-  const userId = req.user.sub; 
-  
+  const userId = req.user.sub;
+
   try {
-    // 1. Check if the signup already exists to prevent duplicates
     const checkResult = await query(
       `SELECT signup_id FROM volunteer_signups
        WHERE user_id = $1 AND event_id = $2`,
@@ -251,17 +286,22 @@ router.post("/signup/:id", requireAuth, async (req, res) => {
     );
 
     if (checkResult.rows.length > 0) {
-      // If the volunteer is already signed up, return a 409 Conflict error
       return res.status(409).json({ message: "Volunteer is already signed up for this event." });
     }
-    
-    // 2. Insert the new signup record
+
     const result = await query(
       `INSERT INTO volunteer_signups 
       (user_id, event_id, signup_status, signup_date)
        VALUES ($1, $2, 'signed_up', NOW())
        RETURNING *`,
       [userId, eventId]
+    );
+
+    await query(
+      `UPDATE events
+       SET volunteer_needed = GREATEST(volunteer_needed - 1, 0)
+       WHERE event_id = $1`,
+      [eventId]
     );
 
     res.status(201).json({

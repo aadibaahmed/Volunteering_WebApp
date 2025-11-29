@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../../assets/header_after/header_after';
+import HeaderAfter from '../../assets/header_after/header_after';
+import HeaderBefore from '../../assets/header_before/header_before';
 import './events.css';
 import { api } from '../../lib/api';
 
@@ -9,11 +10,17 @@ function Events() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  const isLoggedIn = !!localStorage.getItem("token");
+
   useEffect(() => {
     const getEvents = async () => {
       try {
         const res = await api.get('/events');
-        const filtered = res.data.filter(event => event.manager_email && event.manager_email.trim() !== "");
+
+        const filtered = res.data
+          .filter(event => event.manager_email && event.manager_email.trim() !== "")
+          .filter(event => event.volunteers > 0);
+
         setEvents(filtered);
 
       } catch (err) {
@@ -81,7 +88,9 @@ function Events() {
   return (
     <div className="events-dashboard-page">
       <div className="events-container">
-        <Header />
+
+        {isLoggedIn ? <HeaderAfter /> : <HeaderBefore />}
+
         <div className="events-header">
           <h1 className="events-title" style={{ paddingLeft: '6rem' }}>
             Please sign up for events

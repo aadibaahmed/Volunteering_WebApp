@@ -26,9 +26,7 @@ function Header() {
         { title: "Overview", link: `/managerdash` },
         { title: "Volunteers", link: `/managerdash/volunteers` },
         { title: "Events", link: `/managerdash/events` },
-        { title: "Matching", link: `/managerdash/matching` },
-        { title: "Notifications", link: `/managerdash/notifications` },
-        
+        { title: "Matching", link: `/managerdash/matching` },        
         { title: "Reports", link: `/managerdash/reports` },
 
         { title: "Account", link: `/account` }
