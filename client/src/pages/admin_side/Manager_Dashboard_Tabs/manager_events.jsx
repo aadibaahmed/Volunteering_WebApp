@@ -11,6 +11,12 @@ function EventsTab() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
   const [viewMode, setViewMode] = useState('calendar'); // 'calendar' or 'list'
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const [eventToDelete, setEventToDelete] = useState(null);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [showErrorMessage, setShowErrorMessage] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     fetchEvents();
@@ -30,18 +36,33 @@ function EventsTab() {
     }
   };
 
-  const handleDelete = async (eventId) => {
-    if (!window.confirm('Are you sure you want to delete this event?')) {
-      return;
-    }
+  const handleDelete = (eventId) => {
+    setEventToDelete(eventId);
+    setShowConfirmDelete(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!eventToDelete) return;
     
     try {
-      await eventApi.deleteEvent(eventId);
+      await eventApi.deleteEvent(eventToDelete);
+      setSuccessMessage('Event deleted successfully!');
+      setShowSuccessMessage(true);
+      setShowConfirmDelete(false);
+      setEventToDelete(null);
       fetchEvents();
     } catch (err) {
       console.error(err);
-      alert('Failed to delete event');
+      setErrorMessage('Failed to delete event');
+      setShowErrorMessage(true);
+      setShowConfirmDelete(false);
+      setEventToDelete(null);
     }
+  };
+
+  const cancelDelete = () => {
+    setShowConfirmDelete(false);
+    setEventToDelete(null);
   };
 
   if (loading) {
@@ -77,6 +98,12 @@ function EventsTab() {
                   List
                 </button>
               </div>
+              <button 
+                className="refresh-btn" 
+                onClick={fetchEvents}
+              >
+                Refresh Data
+              </button>
               <button className="create-event-btn" onClick={() => setShowModal(true)}>
                 Create New Event
               </button>
@@ -103,6 +130,8 @@ function EventsTab() {
           onClose={() => setShowModal(false)} 
           onSuccess={() => {
             setShowModal(false);
+            setSuccessMessage('Event created successfully!');
+            setShowSuccessMessage(true);
             fetchEvents();
           }}
         />
@@ -118,8 +147,38 @@ function EventsTab() {
           onSuccess={() => {
             setShowEditModal(false);
             setEditingEvent(null);
+            setSuccessMessage('Event updated successfully!');
+            setShowSuccessMessage(true);
             fetchEvents();
           }}
+        />
+      )}
+
+      {/* Confirm Delete Modal */}
+      {showConfirmDelete && (
+        <ConfirmModal 
+          title="Delete Event"
+          message="Are you sure you want to delete this event?"
+          onConfirm={confirmDelete}
+          onCancel={cancelDelete}
+        />
+      )}
+
+      {/* Success Message Modal */}
+      {showSuccessMessage && (
+        <MessageModal 
+          type="success"
+          message={successMessage}
+          onClose={() => setShowSuccessMessage(false)}
+        />
+      )}
+
+      {/* Error Message Modal */}
+      {showErrorMessage && (
+        <MessageModal 
+          type="error"
+          message={errorMessage}
+          onClose={() => setShowErrorMessage(false)}
         />
       )}
     </div>
@@ -311,6 +370,8 @@ function CalendarView({ events }) {
 // List View Component
 function ListView({ events, onDelete, onEdit }) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12; // Show 12 events per page
 
   // Format date to readable format
   const formatDate = (dateString) => {
@@ -369,6 +430,23 @@ function ListView({ events, onDelete, onEdit }) {
     return false;
   });
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredEvents.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedEvents = filteredEvents.slice(startIndex, endIndex);
+
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    // Scroll to top of list
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <>
       {/* Search Bar */}
@@ -410,28 +488,181 @@ function ListView({ events, onDelete, onEdit }) {
           <p>No events match your search.</p>
         </div>
       ) : (
-        <div className="events-list">
-          {filteredEvents.map(event => (
-            <div key={event.id} className="event-card">
-              <div className="event-header">
-                <h4>{event.eventName}</h4>
-                <span className={`urgency ${event.urgency?.toLowerCase() || ''}`}>
-                  {event.urgency}
-                </span>
+        <>
+          {/* Event Count Info */}
+          <div style={{ 
+            textAlign: 'center', 
+            margin: '20px 0',
+            color: '#2A3642',
+            fontSize: '16px',
+            fontWeight: '600'
+          }}>
+            Showing {startIndex + 1}-{Math.min(endIndex, filteredEvents.length)} of {filteredEvents.length} events
+          </div>
+
+          <div className="events-list">
+            {paginatedEvents.map(event => (
+              <div key={event.id} className="event-card">
+                <div className="event-header">
+                  <h4>{event.eventName}</h4>
+                  <span className={`urgency ${event.urgency?.toLowerCase() || ''}`}>
+                    {event.urgency}
+                  </span>
+                </div>
+                <div className="event-details">
+                  <p><strong>Date:</strong> {formatDate(event.date)}</p>
+                  <p><strong>Time:</strong> {formatTime(event.startTime)} - {formatTime(event.endTime)}</p>
+                  <p><strong>Location:</strong> {event.location}</p>
+                  <p><strong>Skills Required:</strong> {Array.isArray(event.skills) ? event.skills.join(', ') : event.skills}</p>
+                </div>
+                <div className="event-actions">
+                  <button className="edit-btn" onClick={() => onEdit(event)}>Edit</button>
+                  <button className="delete-btn" onClick={() => onDelete(event.id)}>Delete</button>
+                </div>
               </div>
-              <div className="event-details">
-                <p><strong>Date:</strong> {formatDate(event.date)}</p>
-                <p><strong>Time:</strong> {formatTime(event.startTime)} - {formatTime(event.endTime)}</p>
-                <p><strong>Location:</strong> {event.location}</p>
-                <p><strong>Skills Required:</strong> {Array.isArray(event.skills) ? event.skills.join(', ') : event.skills}</p>
+            ))}
+          </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="pagination-controls" style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: '10px',
+              marginTop: '40px',
+              marginBottom: '40px'
+            }}>
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="pagination-btn"
+                style={{
+                  padding: '10px 20px',
+                  background: currentPage === 1 ? '#bdc3c7' : '#6A89A7',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '10px',
+                  cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                  fontWeight: '600',
+                  transition: 'all 0.3s',
+                  boxShadow: currentPage === 1 ? 'none' : '0 3px 10px rgba(106, 137, 167, 0.3)'
+                }}
+                onMouseOver={(e) => {
+                  if (currentPage !== 1) {
+                    e.currentTarget.style.background = '#2A3642';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 5px 15px rgba(42, 54, 66, 0.4)';
+                  }
+                }}
+                onMouseOut={(e) => {
+                  if (currentPage !== 1) {
+                    e.currentTarget.style.background = '#6A89A7';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 3px 10px rgba(106, 137, 167, 0.3)';
+                  }
+                }}
+              >
+                ← Previous
+              </button>
+
+              <div style={{
+                display: 'flex',
+                gap: '8px',
+                alignItems: 'center'
+              }}>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => {
+                  // Show first page, last page, current page, and pages around current
+                  const showPage = pageNum === 1 || 
+                                   pageNum === totalPages || 
+                                   Math.abs(pageNum - currentPage) <= 1;
+                  
+                  const showEllipsis = (pageNum === 2 && currentPage > 3) || 
+                                       (pageNum === totalPages - 1 && currentPage < totalPages - 2);
+
+                  if (showEllipsis) {
+                    return <span key={`ellipsis-${pageNum}`} style={{ color: '#666', padding: '0 5px' }}>...</span>;
+                  }
+
+                  if (!showPage && pageNum !== 2 && pageNum !== totalPages - 1) {
+                    return null;
+                  }
+
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => handlePageChange(pageNum)}
+                      className="pagination-number"
+                      style={{
+                        padding: '10px 15px',
+                        background: pageNum === currentPage 
+                          ? 'linear-gradient(135deg, #FFBB00 0%, #e6a600 100%)' 
+                          : 'white',
+                        color: pageNum === currentPage ? '#2A3642' : '#6A89A7',
+                        border: `2px solid ${pageNum === currentPage ? '#FFBB00' : '#6A89A7'}`,
+                        borderRadius: '10px',
+                        cursor: 'pointer',
+                        fontWeight: '700',
+                        minWidth: '45px',
+                        transition: 'all 0.3s',
+                        boxShadow: pageNum === currentPage 
+                          ? '0 3px 10px rgba(255, 187, 0, 0.3)' 
+                          : '0 2px 5px rgba(106, 137, 167, 0.2)'
+                      }}
+                      onMouseOver={(e) => {
+                        if (pageNum !== currentPage) {
+                          e.currentTarget.style.background = '#F4EDE4';
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                        }
+                      }}
+                      onMouseOut={(e) => {
+                        if (pageNum !== currentPage) {
+                          e.currentTarget.style.background = 'white';
+                          e.currentTarget.style.transform = 'translateY(0)';
+                        }
+                      }}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
               </div>
-              <div className="event-actions">
-                <button className="edit-btn" onClick={() => onEdit(event)}>Edit</button>
-                <button className="delete-btn" onClick={() => onDelete(event.id)}>Delete</button>
-              </div>
+
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="pagination-btn"
+                style={{
+                  padding: '10px 20px',
+                  background: currentPage === totalPages ? '#bdc3c7' : '#6A89A7',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '10px',
+                  cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                  fontWeight: '600',
+                  transition: 'all 0.3s',
+                  boxShadow: currentPage === totalPages ? 'none' : '0 3px 10px rgba(106, 137, 167, 0.3)'
+                }}
+                onMouseOver={(e) => {
+                  if (currentPage !== totalPages) {
+                    e.currentTarget.style.background = '#2A3642';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 5px 15px rgba(42, 54, 66, 0.4)';
+                  }
+                }}
+                onMouseOut={(e) => {
+                  if (currentPage !== totalPages) {
+                    e.currentTarget.style.background = '#6A89A7';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 3px 10px rgba(106, 137, 167, 0.3)';
+                  }
+                }}
+              >
+                Next →
+              </button>
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
     </>
   );
@@ -455,12 +686,15 @@ function CreateEventModal({ onClose, onSuccess }) {
     "Crowd Control", "Logistics", "Cooking", "Cleaning", "Organizing"
   ];
 
+  const [validationError, setValidationError] = useState("");
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
+    setValidationError("");
 
     if (!eventName || !location || !eventDate || !startTime || !endTime) {
-      alert("Please fill out all required fields.");
+      setValidationError("Please fill out all required fields.");
       setSubmitting(false);
       return;
     }
@@ -479,7 +713,6 @@ function CreateEventModal({ onClose, onSuccess }) {
 
     try {
       await eventApi.createEvent(formData);
-      alert("Event created successfully!");
       onSuccess();
       
       // Reset form
@@ -494,8 +727,7 @@ function CreateEventModal({ onClose, onSuccess }) {
       setVolunteerNeeded(0);
     } catch (error) {
       console.error("Error creating event:", error);
-      alert(`Failed to create event: ${error.message}`);
-    } finally {
+      setValidationError(`Failed to create event: ${error.message}`);
       setSubmitting(false);
     }
   };
@@ -520,6 +752,21 @@ function CreateEventModal({ onClose, onSuccess }) {
         </div>
         
         <form onSubmit={handleSubmit} className="modal-form">
+          {validationError && (
+            <div style={{
+              padding: '15px',
+              marginBottom: '20px',
+              background: 'linear-gradient(135deg, #FF6B6B 0%, #C92A2A 100%)',
+              color: 'white',
+              borderRadius: '12px',
+              fontWeight: '600',
+              border: '2px solid #B91C1C',
+              boxShadow: '0 3px 10px rgba(185, 28, 28, 0.3)'
+            }}>
+              ⚠ {validationError}
+            </div>
+          )}
+          
           <div className="form-row">
             <label>Event Name *</label>
             <input 
@@ -660,6 +907,7 @@ function EditEventModal({ event, onClose, onSuccess }) {
   const [endTime, setEndTime] = useState(event?.endTime || "");
   const [volunteerNeeded, setVolunteerNeeded] = useState(event?.volunteerNeeded || 0);
   const [submitting, setSubmitting] = useState(false);
+  const [validationError, setValidationError] = useState("");
 
   const allSkills = [
     "First Aid", "CPR", "Teaching", "Event Setup", "Food Service",
@@ -669,9 +917,10 @@ function EditEventModal({ event, onClose, onSuccess }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
+    setValidationError("");
 
     if (!eventName || !location || !eventDate || !startTime || !endTime) {
-      alert("Please fill out all required fields.");
+      setValidationError("Please fill out all required fields.");
       setSubmitting(false);
       return;
     }
@@ -690,12 +939,10 @@ function EditEventModal({ event, onClose, onSuccess }) {
 
     try {
       await eventApi.updateEvent(event.id, formData);
-      alert("Event updated successfully!");
       onSuccess();
     } catch (error) {
       console.error("Error updating event:", error);
-      alert(`Failed to update event: ${error.message}`);
-    } finally {
+      setValidationError(`Failed to update event: ${error.message}`);
       setSubmitting(false);
     }
   };
@@ -720,6 +967,21 @@ function EditEventModal({ event, onClose, onSuccess }) {
         </div>
         
         <form onSubmit={handleSubmit} className="modal-form">
+          {validationError && (
+            <div style={{
+              padding: '15px',
+              marginBottom: '20px',
+              background: 'linear-gradient(135deg, #FF6B6B 0%, #C92A2A 100%)',
+              color: 'white',
+              borderRadius: '12px',
+              fontWeight: '600',
+              border: '2px solid #B91C1C',
+              boxShadow: '0 3px 10px rgba(185, 28, 28, 0.3)'
+            }}>
+              ⚠ {validationError}
+            </div>
+          )}
+          
           <div className="form-row">
             <label>Event Name *</label>
             <input 
@@ -828,6 +1090,60 @@ function EditEventModal({ event, onClose, onSuccess }) {
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  );
+}
+
+// Confirm Modal Component
+function ConfirmModal({ title, message, onConfirm, onCancel }) {
+  return (
+    <div className="modal-overlay" onClick={onCancel}>
+      <div className="modal-content confirm-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+        <div className="modal-header">
+          <h2>{title}</h2>
+          <button className="modal-close-btn" onClick={onCancel}>×</button>
+        </div>
+        <div style={{ padding: '30px', fontSize: '16px', color: '#2A3642', lineHeight: '1.6', fontWeight: '500' }}>
+          {message}
+        </div>
+        <div className="modal-footer">
+          <button className="cancel-btn" onClick={onCancel}>
+            Cancel
+          </button>
+          <button className="submit-btn" onClick={onConfirm}>
+            OK
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Message Modal Component  
+function MessageModal({ type, message, onClose }) {
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content message-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '450px' }}>
+        <div className="modal-header">
+          <h2>{type === 'success' ? '✓ Success' : '⚠ Error'}</h2>
+          <button className="modal-close-btn" onClick={onClose}>×</button>
+        </div>
+        <div style={{ 
+          padding: '30px', 
+          fontSize: '16px', 
+          color: '#2A3642', 
+          lineHeight: '1.6', 
+          fontWeight: '500',
+          textAlign: 'center'
+        }}>
+          {message}
+        </div>
+        <div className="modal-footer" style={{ justifyContent: 'center' }}>
+          <button className="submit-btn" onClick={onClose}>
+            OK
+          </button>
+        </div>
       </div>
     </div>
   );

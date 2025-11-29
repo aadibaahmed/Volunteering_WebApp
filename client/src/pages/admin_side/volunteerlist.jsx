@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { volunteerApi } from '../../lib/managerApi';
 import Header from '../../assets/header_after/header_after.jsx';
-import './Manager_Dashboard_Tabs/events_modal.css';
+import './volunteer_modal.css';
 import './volunteerlist.css';
+import './manager_dashboard.css';
 
 function VolunteerList() {
   const [volunteers, setVolunteers] = useState([]);
@@ -16,6 +17,14 @@ function VolunteerList() {
   const [profileData, setProfileData] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const [volunteerToDelete, setVolunteerToDelete] = useState(null);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [showErrorMessage, setShowErrorMessage] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12; // Show 12 volunteers per page
 
   useEffect(() => {
     fetchVolunteers();
@@ -54,19 +63,33 @@ function VolunteerList() {
     }
   };
 
-  const handleDelete = async (volunteerId) => {
-    if (!window.confirm('Are you sure you want to delete this volunteer? This will deactivate their account.')) {
-      return;
-    }
+  const handleDelete = (volunteerId) => {
+    setVolunteerToDelete(volunteerId);
+    setShowConfirmDelete(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!volunteerToDelete) return;
     
     try {
-      await volunteerApi.deleteVolunteer(volunteerId);
-      alert('Volunteer deleted successfully!');
+      await volunteerApi.deleteVolunteer(volunteerToDelete);
+      setSuccessMessage('Volunteer deleted successfully!');
+      setShowSuccessMessage(true);
+      setShowConfirmDelete(false);
+      setVolunteerToDelete(null);
       fetchVolunteers();
     } catch (err) {
       console.error('Error deleting volunteer:', err);
-      alert(`Failed to delete volunteer: ${err.message}`);
+      setErrorMessage(`Failed to delete volunteer: ${err.message}`);
+      setShowErrorMessage(true);
+      setShowConfirmDelete(false);
+      setVolunteerToDelete(null);
     }
+  };
+
+  const cancelDelete = () => {
+    setShowConfirmDelete(false);
+    setVolunteerToDelete(null);
   };
 
   const handleViewDetails = async (volunteer) => {
@@ -79,7 +102,8 @@ function VolunteerList() {
       setProfileData(profile);
     } catch (err) {
       console.error('Error fetching volunteer profile:', err);
-      alert(`Failed to load profile: ${err.message}`);
+      setErrorMessage(`Failed to load profile: ${err.message}`);
+      setShowErrorMessage(true);
       setProfileData(null);
     } finally {
       setLoadingProfile(false);
@@ -131,6 +155,23 @@ function VolunteerList() {
     return false;
   });
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredVolunteers.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedVolunteers = filteredVolunteers.slice(startIndex, endIndex);
+
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    // Scroll to top of list
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   if (loading) {
     return (
       <div>
@@ -169,6 +210,12 @@ function VolunteerList() {
                 {searchQuery ? 'Found' : 'Volunteers'}
               </span>
             </div>
+            <button 
+              className="refresh-btn" 
+              onClick={fetchVolunteers}
+            >
+              Refresh Data
+            </button>
             <button className="create-event-btn" onClick={() => setShowModal(true)}>
               Add Volunteer
             </button>
@@ -218,8 +265,20 @@ function VolunteerList() {
             <p>No volunteers match your search.</p>
           </div>
         ) : (
-          <div className="volunteers-grid">
-            {filteredVolunteers.map(volunteer => (
+          <>
+            {/* Volunteer Count Info */}
+            <div style={{ 
+              textAlign: 'center', 
+              margin: '20px 0',
+              color: '#2A3642',
+              fontSize: '16px',
+              fontWeight: '600'
+            }}>
+              Showing {startIndex + 1}-{Math.min(endIndex, filteredVolunteers.length)} of {filteredVolunteers.length} volunteers
+            </div>
+
+            <div className="volunteers-grid">
+              {paginatedVolunteers.map(volunteer => (
               <div key={volunteer.volunteerId} className="volunteer-card">
                 <div className="volunteer-card-header">
                   <div className="volunteer-avatar">
@@ -277,7 +336,148 @@ function VolunteerList() {
                 </div>
               </div>
             ))}
-          </div>
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="pagination-controls" style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: '10px',
+                marginTop: '40px',
+                marginBottom: '40px'
+              }}>
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="pagination-btn"
+                  style={{
+                    padding: '10px 20px',
+                    background: currentPage === 1 ? '#bdc3c7' : '#6A89A7',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '10px',
+                    cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                    fontWeight: '600',
+                    transition: 'all 0.3s',
+                    boxShadow: currentPage === 1 ? 'none' : '0 3px 10px rgba(106, 137, 167, 0.3)'
+                  }}
+                  onMouseOver={(e) => {
+                    if (currentPage !== 1) {
+                      e.currentTarget.style.background = '#2A3642';
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 5px 15px rgba(42, 54, 66, 0.4)';
+                    }
+                  }}
+                  onMouseOut={(e) => {
+                    if (currentPage !== 1) {
+                      e.currentTarget.style.background = '#6A89A7';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 3px 10px rgba(106, 137, 167, 0.3)';
+                    }
+                  }}
+                >
+                  ← Previous
+                </button>
+
+                <div style={{
+                  display: 'flex',
+                  gap: '8px',
+                  alignItems: 'center'
+                }}>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => {
+                    // Show first page, last page, current page, and pages around current
+                    const showPage = pageNum === 1 || 
+                                     pageNum === totalPages || 
+                                     Math.abs(pageNum - currentPage) <= 1;
+                    
+                    const showEllipsis = (pageNum === 2 && currentPage > 3) || 
+                                         (pageNum === totalPages - 1 && currentPage < totalPages - 2);
+
+                    if (showEllipsis) {
+                      return <span key={`ellipsis-${pageNum}`} style={{ color: '#666', padding: '0 5px' }}>...</span>;
+                    }
+
+                    if (!showPage && pageNum !== 2 && pageNum !== totalPages - 1) {
+                      return null;
+                    }
+
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => handlePageChange(pageNum)}
+                        className="pagination-number"
+                        style={{
+                          padding: '10px 15px',
+                          background: pageNum === currentPage 
+                            ? 'linear-gradient(135deg, #FFBB00 0%, #e6a600 100%)' 
+                            : 'white',
+                          color: pageNum === currentPage ? '#2A3642' : '#6A89A7',
+                          border: `2px solid ${pageNum === currentPage ? '#FFBB00' : '#6A89A7'}`,
+                          borderRadius: '10px',
+                          cursor: 'pointer',
+                          fontWeight: '700',
+                          minWidth: '45px',
+                          transition: 'all 0.3s',
+                          boxShadow: pageNum === currentPage 
+                            ? '0 3px 10px rgba(255, 187, 0, 0.3)' 
+                            : '0 2px 5px rgba(106, 137, 167, 0.2)'
+                        }}
+                        onMouseOver={(e) => {
+                          if (pageNum !== currentPage) {
+                            e.currentTarget.style.background = '#F4EDE4';
+                            e.currentTarget.style.transform = 'translateY(-2px)';
+                          }
+                        }}
+                        onMouseOut={(e) => {
+                          if (pageNum !== currentPage) {
+                            e.currentTarget.style.background = 'white';
+                            e.currentTarget.style.transform = 'translateY(0)';
+                          }
+                        }}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="pagination-btn"
+                  style={{
+                    padding: '10px 20px',
+                    background: currentPage === totalPages ? '#bdc3c7' : '#6A89A7',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '10px',
+                    cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                    fontWeight: '600',
+                    transition: 'all 0.3s',
+                    boxShadow: currentPage === totalPages ? 'none' : '0 3px 10px rgba(106, 137, 167, 0.3)'
+                  }}
+                  onMouseOver={(e) => {
+                    if (currentPage !== totalPages) {
+                      e.currentTarget.style.background = '#2A3642';
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 5px 15px rgba(42, 54, 66, 0.4)';
+                    }
+                  }}
+                  onMouseOut={(e) => {
+                    if (currentPage !== totalPages) {
+                      e.currentTarget.style.background = '#6A89A7';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 3px 10px rgba(106, 137, 167, 0.3)';
+                    }
+                  }}
+                >
+                  Next →
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -287,6 +487,8 @@ function VolunteerList() {
           onClose={() => setShowModal(false)} 
           onSuccess={() => {
             setShowModal(false);
+            setSuccessMessage('Volunteer created successfully!');
+            setShowSuccessMessage(true);
             fetchVolunteers();
           }}
         />
@@ -303,6 +505,8 @@ function VolunteerList() {
           onSuccess={() => {
             setShowEditModal(false);
             setEditingVolunteer(null);
+            setSuccessMessage('Volunteer updated successfully!');
+            setShowSuccessMessage(true);
             fetchVolunteers();
           }}
         />
@@ -321,6 +525,34 @@ function VolunteerList() {
           }}
         />
       )}
+
+      {/* Confirm Delete Modal */}
+      {showConfirmDelete && (
+        <ConfirmModal 
+          title="Delete Volunteer"
+          message="Are you sure you want to delete this volunteer? This will deactivate their account."
+          onConfirm={confirmDelete}
+          onCancel={cancelDelete}
+        />
+      )}
+
+      {/* Success Message Modal */}
+      {showSuccessMessage && (
+        <MessageModal 
+          type="success"
+          message={successMessage}
+          onClose={() => setShowSuccessMessage(false)}
+        />
+      )}
+
+      {/* Error Message Modal */}
+      {showErrorMessage && (
+        <MessageModal 
+          type="error"
+          message={errorMessage}
+          onClose={() => setShowErrorMessage(false)}
+        />
+      )}
     </div>
   );
 }
@@ -330,26 +562,28 @@ function CreateVolunteerModal({ onClose, onSuccess }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [validationError, setValidationError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
+    setValidationError("");
 
     if (!email || !password) {
-      alert("Please fill out all required fields.");
+      setValidationError("Please fill out all required fields.");
       setSubmitting(false);
       return;
     }
 
     // Basic validation
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      alert("Please enter a valid email address.");
+      setValidationError("Please enter a valid email address.");
       setSubmitting(false);
       return;
     }
 
     if (password.length < 8 || password.length > 12) {
-      alert("Password must be between 8 and 12 characters.");
+      setValidationError("Password must be between 8 and 12 characters.");
       setSubmitting(false);
       return;
     }
@@ -361,7 +595,6 @@ function CreateVolunteerModal({ onClose, onSuccess }) {
 
     try {
       await volunteerApi.createVolunteer(formData);
-      alert("Volunteer created successfully!");
       onSuccess();
       
       // Reset form
@@ -369,8 +602,7 @@ function CreateVolunteerModal({ onClose, onSuccess }) {
       setPassword("");
     } catch (error) {
       console.error("Error creating volunteer:", error);
-      alert(`Failed to create volunteer: ${error.message}`);
-    } finally {
+      setValidationError(`Failed to create volunteer: ${error.message}`);
       setSubmitting(false);
     }
   };
@@ -384,6 +616,21 @@ function CreateVolunteerModal({ onClose, onSuccess }) {
         </div>
         
         <form onSubmit={handleSubmit} className="modal-form">
+          {validationError && (
+            <div style={{
+              padding: '15px',
+              marginBottom: '20px',
+              background: 'linear-gradient(135deg, #FF6B6B 0%, #C92A2A 100%)',
+              color: 'white',
+              borderRadius: '12px',
+              fontWeight: '600',
+              border: '2px solid #B91C1C',
+              boxShadow: '0 3px 10px rgba(185, 28, 28, 0.3)'
+            }}>
+              ⚠ {validationError}
+            </div>
+          )}
+          
           <div className="form-row">
             <label>Email *</label>
             <input 
@@ -445,6 +692,7 @@ function EditVolunteerModal({ volunteer, onClose, onSuccess }) {
   const [availability, setAvailability] = useState([]);
   const [newAvailabilityDate, setNewAvailabilityDate] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [validationError, setValidationError] = useState("");
 
   const allSkills = [
     "First Aid", "CPR", "Teaching", "Event Setup", "Food Service",
@@ -510,22 +758,23 @@ function EditVolunteerModal({ volunteer, onClose, onSuccess }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
+    setValidationError("");
 
     if (!email) {
-      alert("Please provide an email address.");
+      setValidationError("Please provide an email address.");
       setSubmitting(false);
       return;
     }
 
     // Basic validation
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      alert("Please enter a valid email address.");
+      setValidationError("Please enter a valid email address.");
       setSubmitting(false);
       return;
     }
 
     if (password && (password.length < 8 || password.length > 12)) {
-      alert("Password must be between 8 and 12 characters (or leave blank to keep current password).");
+      setValidationError("Password must be between 8 and 12 characters (or leave blank to keep current password).");
       setSubmitting(false);
       return;
     }
@@ -551,12 +800,10 @@ function EditVolunteerModal({ volunteer, onClose, onSuccess }) {
 
     try {
       await volunteerApi.updateVolunteer(volunteer.volunteerId, formData);
-      alert("Volunteer updated successfully!");
       onSuccess();
     } catch (error) {
       console.error("Error updating volunteer:", error);
-      alert(`Failed to update volunteer: ${error.message}`);
-    } finally {
+      setValidationError(`Failed to update volunteer: ${error.message}`);
       setSubmitting(false);
     }
   };
@@ -584,6 +831,21 @@ function EditVolunteerModal({ volunteer, onClose, onSuccess }) {
         </div>
         
         <form onSubmit={handleSubmit} className="modal-form">
+          {validationError && (
+            <div style={{
+              padding: '15px',
+              marginBottom: '20px',
+              background: 'linear-gradient(135deg, #FF6B6B 0%, #C92A2A 100%)',
+              color: 'white',
+              borderRadius: '12px',
+              fontWeight: '600',
+              border: '2px solid #B91C1C',
+              boxShadow: '0 3px 10px rgba(185, 28, 28, 0.3)'
+            }}>
+              ⚠ {validationError}
+            </div>
+          )}
+          
           <h3 style={{ marginBottom: '15px', color: '#2c3e50' }}>Account Information</h3>
           
           <div className="form-row">
@@ -852,6 +1114,60 @@ function ViewDetailsModal({ volunteer, profileData, loadingProfile, onClose }) {
         <div className="modal-footer">
           <button className="cancel-btn" onClick={onClose}>
             Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Confirm Modal Component
+function ConfirmModal({ title, message, onConfirm, onCancel }) {
+  return (
+    <div className="modal-overlay" onClick={onCancel}>
+      <div className="modal-content confirm-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+        <div className="modal-header">
+          <h2>{title}</h2>
+          <button className="modal-close-btn" onClick={onCancel}>×</button>
+        </div>
+        <div style={{ padding: '30px', fontSize: '16px', color: '#2A3642', lineHeight: '1.6', fontWeight: '500' }}>
+          {message}
+        </div>
+        <div className="modal-footer">
+          <button className="cancel-btn" onClick={onCancel}>
+            Cancel
+          </button>
+          <button className="submit-btn" onClick={onConfirm}>
+            OK
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Message Modal Component  
+function MessageModal({ type, message, onClose }) {
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content message-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '450px' }}>
+        <div className="modal-header">
+          <h2>{type === 'success' ? '✓ Success' : '⚠ Error'}</h2>
+          <button className="modal-close-btn" onClick={onClose}>×</button>
+        </div>
+        <div style={{ 
+          padding: '30px', 
+          fontSize: '16px', 
+          color: '#2A3642', 
+          lineHeight: '1.6', 
+          fontWeight: '500',
+          textAlign: 'center'
+        }}>
+          {message}
+        </div>
+        <div className="modal-footer" style={{ justifyContent: 'center' }}>
+          <button className="submit-btn" onClick={onClose}>
+            OK
           </button>
         </div>
       </div>

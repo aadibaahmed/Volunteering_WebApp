@@ -69,6 +69,18 @@
   box-shadow: 0 4px 12px rgba(106, 137, 167, 0.4);
 }
 
+.refresh-btn:disabled {
+  background: #bdc3c7;
+  cursor: not-allowed;
+  opacity: 0.6;
+  box-shadow: none;
+}
+
+.refresh-btn:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
 .dashboard-tabs {
   display: flex;
   gap: 5px;
