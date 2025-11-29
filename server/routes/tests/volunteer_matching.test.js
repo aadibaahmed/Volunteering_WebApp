@@ -1,4 +1,3 @@
-
 import { jest } from "@jest/globals";
 import request from "supertest";
 import express from "express";
@@ -559,668 +558,793 @@ describe("volunteer_matching.routes.js", () => {
     expect(res.body[0].matchScore).toBeGreaterThanOrEqual(50);
   });
 });
+
+// ========== EXTRA BRANCH-COVERAGE TESTS OUTSIDE DESCRIBE ==========
+
 test("GET /event/:id -> covers parseSkills(non-string) and locationScore=0", async () => {
-    // Event has required_skills as a NUMBER (truthy) so calculateMatchScore calls parseSkills(42)
-    // parseSkills should return [], triggering the 'no required skills' +30 branch.
-    // Volunteer has no state_code => locationScore=0.
-    // Availability matches => +25. Total >= 55.
-    pool.query.mockImplementation(async (sql, params) => {
-      sql = (sql || "").toString().toLowerCase();
-  
-      if (sql.includes("create table if not exists volunteer_matches")) return {};
-  
-      // events list: required_skills is a NUMBER-like value through mapping
-      if (sql.includes("from events") && !sql.includes("volunteer_matches")) {
-        return {
-          rows: [
-            {
-              id: 777,
-              name: "General Help",
-              event_description: "help us",
-              location: "Austin, TX",
-              required_skills: 42,         // non-string/array to hit parseSkills 'else' branch
-              urgency: "low",
-              date: "2099-01-01",
-              max_volunteers: 5,
-            },
-          ],
-        };
-      }
-  
-      // volunteers base rows: no state_code to force locationScore=0
-      if (sql.includes("from user_credentials uc")) {
-        return {
-          rows: [
-            {
-              id: 3001,
-              email: "v@x.com",
-              first_name: "NoState",
-              last_name: "User",
-              city: "Houston",
-              state_code: "",              // missing => location score 0
-              preferences: ["help"],
-              completed: true,
-            },
-          ],
-        };
-      }
-  
-      if (sql.includes("from user_skills")) {
-        expect(params[0]).toBe(3001);
-        return { rows: [] };             // no skills; still fine because parseSkills returned []
-      }
-  
-      if (sql.includes("from user_availability")) {
-        return { rows: [{ avail_date: "2099-01-01" }] }; // +25 availability
-      }
-  
-      return { rows: [] };
-    });
-  
-    const res = await request(app).get("/api/matching/event/777");
-    expect(res.status).toBe(200);
-    expect(res.body.length).toBe(1);
-    // Score should be >= 55 (30 no-req-skills + 25 availability)
-    expect(res.body[0].matchScore).toBeGreaterThanOrEqual(55);
+  // Event has required_skills as a NUMBER (truthy) so calculateMatchScore calls parseSkills(42)
+  // parseSkills should return [], triggering the 'no required skills' +30 branch.
+  // Volunteer has no state_code => locationScore=0.
+  // Availability matches => +25. Total >= 55.
+  pool.query.mockImplementation(async (sql, params) => {
+    sql = (sql || "").toString().toLowerCase();
+
+    if (sql.includes("create table if not exists volunteer_matches")) return {};
+
+    // events list: required_skills is a NUMBER-like value through mapping
+    if (sql.includes("from events") && !sql.includes("volunteer_matches")) {
+      return {
+        rows: [
+          {
+            id: 777,
+            name: "General Help",
+            event_description: "help us",
+            location: "Austin, TX",
+            required_skills: 42, // non-string/array to hit parseSkills 'else' branch
+            urgency: "low",
+            date: "2099-01-01",
+            max_volunteers: 5,
+          },
+        ],
+      };
+    }
+
+    // volunteers base rows: no state_code to force locationScore=0
+    if (sql.includes("from user_credentials uc")) {
+      return {
+        rows: [
+          {
+            id: 3001,
+            email: "v@x.com",
+            first_name: "NoState",
+            last_name: "User",
+            city: "Houston",
+            state_code: "", // missing => location score 0
+            preferences: ["help"],
+            completed: true,
+          },
+        ],
+      };
+    }
+
+    if (sql.includes("from user_skills")) {
+      expect(params[0]).toBe(3001);
+      return { rows: [] }; // no skills; still fine because parseSkills returned []
+    }
+
+    if (sql.includes("from user_availability")) {
+      return { rows: [{ avail_date: "2099-01-01" }] }; // +25 availability
+    }
+
+    return { rows: [] };
   });
-  
-  test("GET /all -> covers ensureVolunteerMatchesTable catch and helper fallbacks", async () => {
-    let firstCreateTable = true;
-  
-    pool.query.mockImplementation(async (sql) => {
-      sql = (sql || "").toString().toLowerCase();
-  
-      // Force ensureVolunteerMatchesTable to enter its catch once
-      if (sql.includes("create table if not exists volunteer_matches")) {
-        if (firstCreateTable) {
-          firstCreateTable = false;
-          throw new Error("DDL fail once");
-        }
-        return {};
+
+  const res = await request(app).get("/api/matching/event/777");
+  expect(res.status).toBe(200);
+  expect(res.body.length).toBe(1);
+  // Score should be >= 55 (30 no-req-skills + 25 availability)
+  expect(res.body[0].matchScore).toBeGreaterThanOrEqual(55);
+});
+
+test("GET /all -> covers ensureVolunteerMatchesTable catch and helper fallbacks", async () => {
+  let firstCreateTable = true;
+
+  pool.query.mockImplementation(async (sql) => {
+    sql = (sql || "").toString().toLowerCase();
+
+    // Force ensureVolunteerMatchesTable to enter its catch once
+    if (sql.includes("create table if not exists volunteer_matches")) {
+      if (firstCreateTable) {
+        firstCreateTable = false;
+        throw new Error("DDL fail once");
       }
-  
-      // volunteer_matches rows
-      if (sql.includes("from volunteer_matches")) {
-        return {
-          rows: [
-            {
-              id: 2,
-              event_id: 888,
-              volunteer_id: 444,
-              match_score: 70,
-              status: "assigned",
-              assigned_date: new Date("2099-01-02"),
-              notes: "note",
-            },
-          ],
-        };
-      }
-  
-      // getAllVolunteers base fails to trigger its catch -> []
-      if (sql.includes("from user_credentials uc")) {
-        throw new Error("base volunteer fetch failed");
-      }
-  
-      // getAllEvents returns one event
-      if (sql.includes("from events") && !sql.includes("volunteer_matches")) {
-        return {
-          rows: [
-            {
-              id: 888,
-              name: "Charity Fair",
-              event_description: "fair",
-              location: "Houston, TX",
-              required_skills: "Teamwork",
-              urgency: "medium",
-              date: "2099-01-03",
-              max_volunteers: 10,
-            },
-          ],
-        };
-      }
-  
-      return { rows: [] };
-    });
-  
-    const res = await request(app).get("/api/matching/all");
-    expect(res.status).toBe(200);
-    // With volunteers [], the enrichment may yield volunteer: null, but route still returns rows.
-    expect(res.body.length).toBe(1);
-    expect(res.body[0]).toMatchObject({
-      id: 2,
-      eventId: 888,
-      volunteerId: 444,
-      matchScore: 70,
-      status: "assigned",
-    });
+      return {};
+    }
+
+    // volunteer_matches rows
+    if (sql.includes("from volunteer_matches")) {
+      return {
+        rows: [
+          {
+            id: 2,
+            event_id: 888,
+            volunteer_id: 444,
+            match_score: 70,
+            status: "assigned",
+            assigned_date: new Date("2099-01-02"),
+            notes: "note",
+          },
+        ],
+      };
+    }
+
+    // getAllVolunteers base fails to trigger its catch -> []
+    if (sql.includes("from user_credentials uc")) {
+      throw new Error("base volunteer fetch failed");
+    }
+
+    // getAllEvents returns one event
+    if (sql.includes("from events") && !sql.includes("volunteer_matches")) {
+      return {
+        rows: [
+          {
+            id: 888,
+            name: "Charity Fair",
+            event_description: "fair",
+            location: "Houston, TX",
+            required_skills: "Teamwork",
+            urgency: "medium",
+            date: "2099-01-03",
+            max_volunteers: 10,
+          },
+        ],
+      };
+    }
+
+    return { rows: [] };
   });
-  
-  test("GET /volunteer/:id -> helper catch path (getAllEvents fails => returns [])", async () => {
-    pool.query.mockImplementation(async (sql) => {
-      sql = (sql || "").toString().toLowerCase();
-  
-      if (sql.includes("from user_credentials uc")) {
-        return {
-          rows: [
-            {
-              id: 555,
-              email: "v@x.com",
-              first_name: "Ok",
-              last_name: "User",
-              city: "Houston",
-              state_code: "TX",
-              preferences: [],
-              completed: true,
-            },
-          ],
-        };
-      }
-  
-      if (sql.includes("from user_skills")) return { rows: [{ name: "First Aid" }] };
-      if (sql.includes("from user_availability")) return { rows: [{ avail_date: "2099-01-01" }] };
-  
-      // Force getAllEvents catch -> []
-      if (sql.includes("from events") && !sql.includes("volunteer_matches")) {
-        throw new Error("events fetch failed");
-      }
-  
-      return { rows: [] };
-    });
-  
-    const res = await request(app).get("/api/matching/volunteer/555");
-    expect(res.status).toBe(200);
-    // No events -> no matches
-    expect(res.body).toEqual([]);
+
+  const res = await request(app).get("/api/matching/all");
+  expect(res.status).toBe(200);
+  // With volunteers [], the enrichment may yield volunteer: null, but route still returns rows.
+  expect(res.body.length).toBe(1);
+  expect(res.body[0]).toMatchObject({
+    id: 2,
+    eventId: 888,
+    volunteerId: 444,
+    matchScore: 70,
+    status: "assigned",
   });
-  
-  test("GET /event/:id -> helper catch path (getAllVolunteers fails => returns [])", async () => {
-    pool.query.mockImplementation(async (sql) => {
-      sql = (sql || "").toString().toLowerCase();
-  
-      if (sql.includes("from events") && !sql.includes("volunteer_matches")) {
-        return {
-          rows: [
-            {
-              id: 321,
-              name: "Any Event",
-              event_description: "",
-              location: "Houston, TX",
-              required_skills: "Teamwork",
-              urgency: "low",
-              date: "2099-05-01",
-              max_volunteers: 1,
-            },
-          ],
-        };
-      }
-  
-      // Force getAllVolunteers catch
-      if (sql.includes("from user_credentials uc")) {
-        throw new Error("volunteers fetch failed");
-      }
-  
-      return { rows: [] };
-    });
-  
-    const res = await request(app).get("/api/matching/event/321");
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual([]); // no volunteers => no matches
+});
+
+test("GET /volunteer/:id -> helper catch path (getAllEvents fails => returns [])", async () => {
+  pool.query.mockImplementation(async (sql) => {
+    sql = (sql || "").toString().toLowerCase();
+
+    if (sql.includes("from user_credentials uc")) {
+      return {
+        rows: [
+          {
+            id: 555,
+            email: "v@x.com",
+            first_name: "Ok",
+            last_name: "User",
+            city: "Houston",
+            state_code: "TX",
+            preferences: [],
+            completed: true,
+          },
+        ],
+      };
+    }
+
+    if (sql.includes("from user_skills")) return { rows: [{ name: "First Aid" }] };
+    if (sql.includes("from user_availability")) return { rows: [{ avail_date: "2099-01-01" }] };
+
+    // Force getAllEvents catch -> []
+    if (sql.includes("from events") && !sql.includes("volunteer_matches")) {
+      throw new Error("events fetch failed");
+    }
+
+    return { rows: [] };
   });
-  
+
+  const res = await request(app).get("/api/matching/volunteer/555");
+  expect(res.status).toBe(200);
+  // No events -> no matches
+  expect(res.body).toEqual([]);
+});
+
+test("GET /event/:id -> helper catch path (getAllVolunteers fails => returns [])", async () => {
+  pool.query.mockImplementation(async (sql) => {
+    sql = (sql || "").toString().toLowerCase();
+
+    if (sql.includes("from events") && !sql.includes("volunteer_matches")) {
+      return {
+        rows: [
+          {
+            id: 321,
+            name: "Any Event",
+            event_description: "",
+            location: "Houston, TX",
+            required_skills: "Teamwork",
+            urgency: "low",
+            date: "2099-05-01",
+            max_volunteers: 1,
+          },
+        ],
+      };
+    }
+
+    // Force getAllVolunteers catch
+    if (sql.includes("from user_credentials uc")) {
+      throw new Error("volunteers fetch failed");
+    }
+
+    return { rows: [] };
+  });
+
+  const res = await request(app).get("/api/matching/event/321");
+  expect(res.status).toBe(200);
+  expect(res.body).toEqual([]); // no volunteers => no matches
+});
+
 test("GET /event/:eventId -> returns [] when event not found", async () => {
-    // getAllEvents returns a different id than requested
-    pool.query.mockImplementation(async (sql) => {
-      const s = (sql || "").toString().toLowerCase();
-  
-      if (s.includes("from events") && !s.includes("volunteer_matches")) {
-        return {
-          rows: [
-            {
-              id: 999, // not the one we'll request
-              name: "Other Event",
-              event_description: "something else",
-              location: "Austin, TX",
-              required_skills: "Teamwork",
-              urgency: "low",
-              date: "2099-02-02",
-              max_volunteers: 10,
-            },
-          ],
-        };
-      }
-  
-      // volunteers still present, but since event isn't found, it should short-circuit
-      if (s.includes("from user_credentials uc")) {
-        return {
-          rows: [
-            {
-              id: 300,
-              email: "v@x.com",
-              first_name: "A",
-              last_name: "B",
-              city: "Houston",
-              state_code: "TX",
-              preferences: [],
-              completed: true,
-            },
-          ],
-        };
-      }
-      if (s.includes("from user_skills")) return { rows: [{ name: "Teamwork" }] };
-      if (s.includes("from user_availability")) return { rows: [{ avail_date: "2099-02-02" }] };
-  
-      return { rows: [] };
-    });
-  
-    const res = await request(app).get("/api/matching/event/123");
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual([]); // covers the "event not found -> []" branch
+  // getAllEvents returns a different id than requested
+  pool.query.mockImplementation(async (sql) => {
+    const s = (sql || "").toString().toLowerCase();
+
+    if (s.includes("from events") && !s.includes("volunteer_matches")) {
+      return {
+        rows: [
+          {
+            id: 999, // not the one we'll request
+            name: "Other Event",
+            event_description: "something else",
+            location: "Austin, TX",
+            required_skills: "Teamwork",
+            urgency: "low",
+            date: "2099-02-02",
+            max_volunteers: 10,
+          },
+        ],
+      };
+    }
+
+    // volunteers still present, but since event isn't found, it should short-circuit
+    if (s.includes("from user_credentials uc")) {
+      return {
+        rows: [
+          {
+            id: 300,
+            email: "v@x.com",
+            first_name: "A",
+            last_name: "B",
+            city: "Houston",
+            state_code: "TX",
+            preferences: [],
+            completed: true,
+          },
+        ],
+      };
+    }
+    if (s.includes("from user_skills")) return { rows: [{ name: "Teamwork" }] };
+    if (s.includes("from user_availability")) return { rows: [{ avail_date: "2099-02-02" }] };
+
+    return { rows: [] };
   });
-  
-  test("POST /assign -> 500 when volunteer or event not found", async () => {
-    pool.query.mockImplementation(async (sql) => {
-      const s = (sql || "").toString().toLowerCase();
-  
-      if (s.includes("create table if not exists volunteer_matches")) return {};
-      // return NO volunteers to trigger not-found branch in assignVolunteerToEvent
-      if (s.includes("from user_credentials uc")) return { rows: [] };
-  
-      // events exist but no volunteers means the check fails anyway
-      if (s.includes("from events") && !s.includes("volunteer_matches")) {
-        return {
-          rows: [
-            {
-              id: 501,
-              name: "Park Cleanup",
-              event_description: "cleanup",
-              location: "Houston, TX",
-              required_skills: "First Aid",
-              urgency: "low",
-              date: "2099-01-01",
-              max_volunteers: 5,
-            },
-          ],
-        };
-      }
-      return { rows: [] };
-    });
-  
-    const res = await request(app)
-      .post("/api/matching/assign")
-      .send({ volunteerId: 101, eventId: 501 });
-  
-    expect(res.status).toBe(500);
-    expect(res.body.error).toMatch(/volunteer or event not found/i);
+
+  const res = await request(app).get("/api/matching/event/123");
+  expect(res.status).toBe(200);
+  expect(res.body).toEqual([]); // covers the "event not found -> []" branch
+});
+
+test("POST /assign -> 500 when volunteer or event not found", async () => {
+  pool.query.mockImplementation(async (sql) => {
+    const s = (sql || "").toString().toLowerCase();
+
+    if (s.includes("create table if not exists volunteer_matches")) return {};
+    // return NO volunteers to trigger not-found branch in assignVolunteerToEvent
+    if (s.includes("from user_credentials uc")) return { rows: [] };
+
+    // events exist but no volunteers means the check fails anyway
+    if (s.includes("from events") && !s.includes("volunteer_matches")) {
+      return {
+        rows: [
+          {
+            id: 501,
+            name: "Park Cleanup",
+            event_description: "cleanup",
+            location: "Houston, TX",
+            required_skills: "First Aid",
+            urgency: "low",
+            date: "2099-01-01",
+            max_volunteers: 5,
+          },
+        ],
+      };
+    }
+    return { rows: [] };
   });
-  
-  test("GET /all -> volunteer name falls back to email when first/last empty", async () => {
-    pool.query.mockImplementation(async (sql, params) => {
-      const s = (sql || "").toString().toLowerCase();
-  
-      if (s.includes("create table if not exists volunteer_matches")) return {};
-  
-      if (s.includes("from volunteer_matches")) {
-        return {
-          rows: [
-            {
-              id: 3,
-              event_id: 700,
-              volunteer_id: 701,
-              match_score: 60,
-              status: "assigned",
-              assigned_date: new Date("2099-03-03"),
-              notes: null,
-            },
-          ],
-        };
-      }
-  
-      if (s.includes("from user_credentials uc")) {
-        // first/last empty -> router should use email for display name
-        return {
-          rows: [
-            {
-              id: 701,
-              email: "fallback@name.com",
-              first_name: "",
-              last_name: "",
-              city: "Houston",
-              state_code: "TX",
-              preferences: [],
-              completed: true,
-            },
-          ],
-        };
-      }
-      if (s.includes("from user_skills")) return { rows: [{ name: "Teamwork" }] };
-      if (s.includes("from user_availability")) return { rows: [{ avail_date: "2099-03-04" }] };
-  
-      if (s.includes("from events") && !s.includes("volunteer_matches")) {
-        return {
-          rows: [
-            {
-              id: 700,
-              name: "Booth Support",
-              event_description: "fair booth",
-              location: "Houston, TX",
-              required_skills: "Teamwork",
-              urgency: "low",
-              date: "2099-03-04",
-              max_volunteers: 5,
-            },
-          ],
-        };
-      }
-      return { rows: [] };
-    });
-  
-    const res = await request(app).get("/api/matching/all");
-    expect(res.status).toBe(200);
-    expect(res.body.length).toBe(1);
-    expect(res.body[0].volunteer.name).toBe("fallback@name.com"); // hit fallback
+
+  const res = await request(app)
+    .post("/api/matching/assign")
+    .send({ volunteerId: 101, eventId: 501 });
+
+  expect(res.status).toBe(500);
+  expect(res.body.error).toMatch(/volunteer or event not found/i);
+});
+
+test("GET /all -> volunteer name falls back to email when first/last empty", async () => {
+  pool.query.mockImplementation(async (sql, params) => {
+    const s = (sql || "").toString().toLowerCase();
+
+    if (s.includes("create table if not exists volunteer_matches")) return {};
+
+    if (s.includes("from volunteer_matches")) {
+      return {
+        rows: [
+          {
+            id: 3,
+            event_id: 700,
+            volunteer_id: 701,
+            match_score: 60,
+            status: "assigned",
+            assigned_date: new Date("2099-03-03"),
+            notes: null,
+          },
+        ],
+      };
+    }
+
+    if (s.includes("from user_credentials uc")) {
+      // first/last empty -> router should use email for display name
+      return {
+        rows: [
+          {
+            id: 701,
+            email: "fallback@name.com",
+            first_name: "",
+            last_name: "",
+            city: "Houston",
+            state_code: "TX",
+            preferences: [],
+            completed: true,
+          },
+        ],
+      };
+    }
+    if (s.includes("from user_skills")) return { rows: [{ name: "Teamwork" }] };
+    if (s.includes("from user_availability")) return { rows: [{ avail_date: "2099-03-04" }] };
+
+    if (s.includes("from events") && !s.includes("volunteer_matches")) {
+      return {
+        rows: [
+          {
+            id: 700,
+            name: "Booth Support",
+            event_description: "fair booth",
+            location: "Houston, TX",
+            required_skills: "Teamwork",
+            urgency: "low",
+            date: "2099-03-04",
+            max_volunteers: 5,
+          },
+        ],
+      };
+    }
+    return { rows: [] };
   });
-  
-  test("GET /event/:eventId -> +5 preferences boost explicitly covered", async () => {
-    pool.query.mockImplementation(async (sql, params) => {
-      const s = (sql || "").toString().toLowerCase();
-  
-      if (s.includes("from events") && !s.includes("volunteer_matches")) {
-        return {
-          rows: [
-            {
-              id: 910,
-              name: "Beach Cleanup",
-              event_description: "We will CLEANUP the beach",
-              location: "Houston, TX",
-              required_skills: "First Aid",
-              urgency: "medium",
-              date: "2099-06-01",
-              max_volunteers: 2,
-            },
-          ],
-        };
-      }
-  
-      if (s.includes("from user_credentials uc")) {
-        return {
-          rows: [
-            {
-              id: 800,
-              email: "pref@x.com",
-              first_name: "Pref",
-              last_name: "Boost",
-              city: "Houston",
-              state_code: "TX",
-              preferences: ["cleanup"], // should match event name/description
-              completed: true,
-            },
-          ],
-        };
-      }
-  
-      if (s.includes("from user_skills")) {
-        expect(params[0]).toBe(800);
-        return { rows: [{ name: "First Aid" }] };
-      }
-      if (s.includes("from user_availability")) {
-        return { rows: [{ avail_date: "2099-06-01" }] };
-      }
-      return { rows: [] };
-    });
-  
-    const res = await request(app).get("/api/matching/event/910");
-    expect(res.status).toBe(200);
-    // Baseline: 60 (skills) + 25 (availability) + 10 (location) + 5 (prefs) = 100 (capped by math/rounding)
-    expect(res.body[0].matchScore).toBeGreaterThanOrEqual(90);
+
+  const res = await request(app).get("/api/matching/all");
+  expect(res.status).toBe(200);
+  expect(res.body.length).toBe(1);
+  expect(res.body[0].volunteer.name).toBe("fallback@name.com"); // hit fallback
+});
+
+test("GET /event/:eventId -> +5 preferences boost explicitly covered", async () => {
+  pool.query.mockImplementation(async (sql, params) => {
+    const s = (sql || "").toString().toLowerCase();
+
+    if (s.includes("from events") && !s.includes("volunteer_matches")) {
+      return {
+        rows: [
+          {
+            id: 910,
+            name: "Beach Cleanup",
+            event_description: "We will CLEANUP the beach",
+            location: "Houston, TX",
+            required_skills: "First Aid",
+            urgency: "medium",
+            date: "2099-06-01",
+            max_volunteers: 2,
+          },
+        ],
+      };
+    }
+
+    if (s.includes("from user_credentials uc")) {
+      return {
+        rows: [
+          {
+            id: 800,
+            email: "pref@x.com",
+            first_name: "Pref",
+            last_name: "Boost",
+            city: "Houston",
+            state_code: "TX",
+            preferences: ["cleanup"], // should match event name/description
+            completed: true,
+          },
+        ],
+      };
+    }
+
+    if (s.includes("from user_skills")) {
+      expect(params[0]).toBe(800);
+      return { rows: [{ name: "First Aid" }] };
+    }
+    if (s.includes("from user_availability")) {
+      return { rows: [{ avail_date: "2099-06-01" }] };
+    }
+    return { rows: [] };
   });
+
+  const res = await request(app).get("/api/matching/event/910");
+  expect(res.status).toBe(200);
+  // Baseline: 60 (skills) + 25 (availability) + 10 (location) + 5 (prefs) = 100 (capped by math/rounding)
+  expect(res.body[0].matchScore).toBeGreaterThanOrEqual(90);
+});
+
 test("GET /all -> [] when no matches rows (early return path)", async () => {
-    pool.query.mockImplementation(async (sql) => {
-      const s = (sql || "").toString().toLowerCase();
-      if (s.includes("create table if not exists volunteer_matches")) return {};
-      if (s.includes("from volunteer_matches")) return { rows: [] }; // empty -> early return
-      // Any other helper calls shouldn't run, but return safe defaults
-      return { rows: [] };
-    });
-  
-    const res = await request(app).get("/api/matching/all");
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual([]);
+  pool.query.mockImplementation(async (sql) => {
+    const s = (sql || "").toString().toLowerCase();
+    if (s.includes("create table if not exists volunteer_matches")) return {};
+    if (s.includes("from volunteer_matches")) return { rows: [] }; // empty -> early return
+    // Any other helper calls shouldn't run, but return safe defaults
+    return { rows: [] };
   });
-  
-  test("GET /all -> event missing in enrichment (event: null branch)", async () => {
-    pool.query.mockImplementation(async (sql) => {
-      const s = (sql || "").toString().toLowerCase();
-  
-      if (s.includes("create table if not exists volunteer_matches")) return {};
-  
-      if (s.includes("from volunteer_matches")) {
-        return {
-          rows: [
-            {
-              id: 10,
-              event_id: 9999, // will not be returned by events
-              volunteer_id: 5001,
-              match_score: 72,
-              status: "assigned",
-              assigned_date: new Date("2099-07-01"),
-              notes: null,
-            },
-          ],
-        };
-      }
-  
-      // volunteers present so volunteer is non-null
-      if (s.includes("from user_credentials uc")) {
-        return {
-          rows: [
-            {
-              id: 5001,
-              email: "v@x.com",
-              first_name: "Vol",
-              last_name: "Unteer",
-              city: "Houston",
-              state_code: "TX",
-              preferences: [],
-              completed: true,
-            },
-          ],
-        };
-      }
-      if (s.includes("from user_skills")) return { rows: [{ name: "Teamwork" }] };
-      if (s.includes("from user_availability")) return { rows: [{ avail_date: "2099-07-02" }] };
-  
-      // events do NOT include 9999 -> event becomes null in enrichment
-      if (s.includes("from events") && !s.includes("volunteer_matches")) {
-        return {
-          rows: [
-            {
-              id: 7001,
-              name: "Another Event",
-              event_description: "desc",
-              location: "Houston, TX",
-              required_skills: "Teamwork",
-              urgency: "low",
-              date: "2099-07-02",
-              max_volunteers: 5,
-            },
-          ],
-        };
-      }
-      return { rows: [] };
-    });
-  
-    const res = await request(app).get("/api/matching/all");
-    expect(res.status).toBe(200);
-    expect(res.body.length).toBe(1);
-    expect(res.body[0].event).toBeNull(); // hit event-null branch
-    expect(res.body[0].volunteer).toBeTruthy();
+
+  const res = await request(app).get("/api/matching/all");
+  expect(res.status).toBe(200);
+  expect(res.body).toEqual([]);
+});
+
+test("GET /all -> event missing in enrichment (event: null branch)", async () => {
+  pool.query.mockImplementation(async (sql) => {
+    const s = (sql || "").toString().toLowerCase();
+
+    if (s.includes("create table if not exists volunteer_matches")) return {};
+
+    if (s.includes("from volunteer_matches")) {
+      return {
+        rows: [
+          {
+            id: 10,
+            event_id: 9999, // will not be returned by events
+            volunteer_id: 5001,
+            match_score: 72,
+            status: "assigned",
+            assigned_date: new Date("2099-07-01"),
+            notes: null,
+          },
+        ],
+      };
+    }
+
+    // volunteers present so volunteer is non-null
+    if (s.includes("from user_credentials uc")) {
+      return {
+        rows: [
+          {
+            id: 5001,
+            email: "v@x.com",
+            first_name: "Vol",
+            last_name: "Unteer",
+            city: "Houston",
+            state_code: "TX",
+            preferences: [],
+            completed: true,
+          },
+        ],
+      };
+    }
+    if (s.includes("from user_skills")) return { rows: [{ name: "Teamwork" }] };
+    if (s.includes("from user_availability")) return { rows: [{ avail_date: "2099-07-02" }] };
+
+    // events do NOT include 9999 -> event becomes null in enrichment
+    if (s.includes("from events") && !s.includes("volunteer_matches")) {
+      return {
+        rows: [
+          {
+            id: 7001,
+            name: "Another Event",
+            event_description: "desc",
+            location: "Houston, TX",
+            required_skills: "Teamwork",
+            urgency: "low",
+            date: "2099-07-02",
+            max_volunteers: 5,
+          },
+        ],
+      };
+    }
+    return { rows: [] };
   });
-  
-  test("GET /volunteer/:id -> [] when volunteer not found or not completed", async () => {
-    // Case A: volunteer not found
-    pool.query.mockImplementation(async (sql) => {
-      const s = (sql || "").toString().toLowerCase();
-      if (s.includes("from user_credentials uc")) return { rows: [] }; // no volunteer with that id
-      if (s.includes("from user_skills")) return { rows: [] };
-      if (s.includes("from user_availability")) return { rows: [] };
-      if (s.includes("from events") && !s.includes("volunteer_matches")) {
-        return {
-          rows: [
-            {
-              id: 1,
-              name: "Any",
-              event_description: "",
-              location: "Houston, TX",
-              required_skills: "Teamwork",
-              urgency: "low",
-              date: "2099-01-01",
-              max_volunteers: 1,
-            },
-          ],
-        };
-      }
-      return { rows: [] };
-    });
-  
-    let res = await request(app).get("/api/matching/volunteer/12345");
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual([]);
-  
-    // Case B: found but completed=false
-    pool.query.mockImplementation(async (sql) => {
-      const s = (sql || "").toString().toLowerCase();
-      if (s.includes("from user_credentials uc")) {
-        return {
-          rows: [
-            {
-              id: 222,
-              email: "incomplete@x.com",
-              first_name: "Inc",
-              last_name: "Complete",
-              city: "Houston",
-              state_code: "TX",
-              preferences: [],
-              completed: false, // not completed -> should early return []
-            },
-          ],
-        };
-      }
-      if (s.includes("from user_skills")) return { rows: [] };
-      if (s.includes("from user_availability")) return { rows: [] };
-      if (s.includes("from events") && !s.includes("volunteer_matches")) {
-        return { rows: [] };
-      }
-      return { rows: [] };
-    });
-  
-    res = await request(app).get("/api/matching/volunteer/222");
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual([]);
+
+  const res = await request(app).get("/api/matching/all");
+  expect(res.status).toBe(200);
+  expect(res.body.length).toBe(1);
+  expect(res.body[0].event).toBeNull(); // hit event-null branch
+  expect(res.body[0].volunteer).toBeTruthy();
+});
+
+test("GET /volunteer/:id -> [] when volunteer not found or not completed", async () => {
+  // Case A: volunteer not found
+  pool.query.mockImplementation(async (sql) => {
+    const s = (sql || "").toString().toLowerCase();
+    if (s.includes("from user_credentials uc")) return { rows: [] }; // no volunteer with that id
+    if (s.includes("from user_skills")) return { rows: [] };
+    if (s.includes("from user_availability")) return { rows: [] };
+    if (s.includes("from events") && !s.includes("volunteer_matches")) {
+      return {
+        rows: [
+          {
+            id: 1,
+            name: "Any",
+            event_description: "",
+            location: "Houston, TX",
+            required_skills: "Teamwork",
+            urgency: "low",
+            date: "2099-01-01",
+            max_volunteers: 1,
+          },
+        ],
+      };
+    }
+    return { rows: [] };
   });
-  
-  test("PUT /:matchId/status -> 400 when status is non-string (e.g., number)", async () => {
-    const res = await request(app)
-      .put("/api/matching/42/status")
-      .send({ status: 123 }); // present but not a string
-    expect(res.status).toBe(400);
-    expect(res.body.error).toMatch(/must be a string/i);
-  });
-  
-  test("GET /history/:volunteerId -> [] when no rows", async () => {
-    pool.query.mockImplementation(async (sql) => {
-      const s = (sql || "").toString().toLowerCase();
-      if (s.includes("create table if not exists volunteer_matches")) return {};
-      if (s.includes("from volunteer_matches vm where vm.volunteer_id")) {
-        return { rows: [] }; // empty history
-      }
-      // events shouldn’t be called, but return safe default if it does
+
+  let res = await request(app).get("/api/matching/volunteer/12345");
+  expect(res.status).toBe(200);
+  expect(res.body).toEqual([]);
+
+  // Case B: found but completed=false
+  pool.query.mockImplementation(async (sql) => {
+    const s = (sql || "").toString().toLowerCase();
+    if (s.includes("from user_credentials uc")) {
+      return {
+        rows: [
+          {
+            id: 222,
+            email: "incomplete@x.com",
+            first_name: "Inc",
+            last_name: "Complete",
+            city: "Houston",
+            state_code: "TX",
+            preferences: [],
+            completed: false, // not completed -> should early return []
+          },
+        ],
+      };
+    }
+    if (s.includes("from user_skills")) return { rows: [] };
+    if (s.includes("from user_availability")) return { rows: [] };
+    if (s.includes("from events") && !s.includes("volunteer_matches")) {
       return { rows: [] };
-    });
-  
-    const res = await request(app).get("/api/matching/history/404");
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual([]);
+    }
+    return { rows: [] };
   });
-  
-  test("POST /assign -> 201 success when notes omitted (defaults to empty string)", async () => {
-    pool.query.mockImplementation(async (sql, params) => {
-      const s = (sql || "").toString().toLowerCase();
-  
-      if (s.includes("create table if not exists volunteer_matches")) return {};
-  
-      // volunteers
-      if (s.includes("from user_credentials uc")) {
-        return {
-          rows: [
-            {
-              id: 101,
-              email: "vol@x.com",
-              first_name: "Vol",
-              last_name: "Unteer",
-              city: "Houston",
-              state_code: "TX",
-              preferences: [],
-              completed: true,
-            },
-          ],
-        };
-      }
-      if (s.includes("from user_skills")) return { rows: [{ name: "Teamwork" }] };
-      if (s.includes("from user_availability")) return { rows: [{ avail_date: "2099-10-10" }] };
-  
-      // events
-      if (s.includes("from events") && !s.includes("volunteer_matches")) {
-        return {
-          rows: [
-            {
-              id: 202,
-              name: "Fair",
-              event_description: "help booths",
-              location: "Houston, TX",
-              required_skills: "Teamwork",
-              urgency: "low",
-              date: "2099-10-10",
-              max_volunteers: 10,
-            },
-          ],
-        };
-      }
-  
-      // existing assignment check -> none
-      if (s.includes("select id from volunteer_matches")) {
-        expect(params).toEqual([202, 101]);
-        return { rowCount: 0, rows: [] };
-      }
-  
-      // insert with default notes (empty string)
-      if (s.includes("insert into volunteer_matches")) {
-        // params: [eventId, volunteerId, matchScore, notes]
-        expect(params[0]).toBe(202);
-        expect(params[1]).toBe(101);
-        expect(typeof params[2]).toBe("number");
-        expect(params[3]).toBe(""); // defaulted notes
-        return {
-          rows: [
-            {
-              id: 77,
-              event_id: 202,
-              volunteer_id: 101,
-              match_score: params[2],
-              status: "assigned",
-              assigned_date: new Date("2099-10-01"),
-              notes: "",
-            },
-          ],
-        };
-      }
-  
-      return { rows: [] };
-    });
-  
-    const res = await request(app)
-      .post("/api/matching/assign")
-      .send({ volunteerId: 101, eventId: 202 }); // notes omitted
-    expect(res.status).toBe(201);
-    expect(res.body.notes).toBe("");
+
+  res = await request(app).get("/api/matching/volunteer/222");
+  expect(res.status).toBe(200);
+  expect(res.body).toEqual([]);
+});
+
+test("PUT /:matchId/status -> 400 when status is non-string (e.g., number)", async () => {
+  const res = await request(app)
+    .put("/api/matching/42/status")
+    .send({ status: 123 }); // present but not a string
+  expect(res.status).toBe(400);
+  expect(res.body.error).toMatch(/must be a string/i);
+});
+
+test("GET /history/:volunteerId -> [] when no rows", async () => {
+  pool.query.mockImplementation(async (sql) => {
+    const s = (sql || "").toString().toLowerCase();
+    if (s.includes("create table if not exists volunteer_matches")) return {};
+    if (s.includes("from volunteer_matches vm where vm.volunteer_id")) {
+      return { rows: [] }; // empty history
+    }
+    // events shouldn’t be called, but return safe default if it does
+    return { rows: [] };
   });
-  
+
+  const res = await request(app).get("/api/matching/history/404");
+  expect(res.status).toBe(200);
+  expect(res.body).toEqual([]);
+});
+
+test("POST /assign -> 201 success when notes omitted (defaults to empty string)", async () => {
+  pool.query.mockImplementation(async (sql, params) => {
+    const s = (sql || "").toString().toLowerCase();
+
+    if (s.includes("create table if not exists volunteer_matches")) return {};
+
+    // volunteers
+    if (s.includes("from user_credentials uc")) {
+      return {
+        rows: [
+          {
+            id: 101,
+            email: "vol@x.com",
+            first_name: "Vol",
+            last_name: "Unteer",
+            city: "Houston",
+            state_code: "TX",
+            preferences: [],
+            completed: true,
+          },
+        ],
+      };
+    }
+    if (s.includes("from user_skills")) return { rows: [{ name: "Teamwork" }] };
+    if (s.includes("from user_availability")) return { rows: [{ avail_date: "2099-10-10" }] };
+
+    // events
+    if (s.includes("from events") && !s.includes("volunteer_matches")) {
+      return {
+        rows: [
+          {
+            id: 202,
+            name: "Fair",
+            event_description: "help booths",
+            location: "Houston, TX",
+            required_skills: "Teamwork",
+            urgency: "low",
+            date: "2099-10-10",
+            max_volunteers: 10,
+          },
+        ],
+      };
+    }
+
+    // existing assignment check -> none
+    if (s.includes("select id from volunteer_matches")) {
+      expect(params).toEqual([202, 101]);
+      return { rowCount: 0, rows: [] };
+    }
+
+    // insert with default notes (empty string)
+    if (s.includes("insert into volunteer_matches")) {
+      // params: [eventId, volunteerId, matchScore, notes]
+      expect(params[0]).toBe(202);
+      expect(params[1]).toBe(101);
+      expect(typeof params[2]).toBe("number");
+      expect(params[3]).toBe(""); // defaulted notes
+      return {
+        rows: [
+          {
+            id: 77,
+            event_id: 202,
+            volunteer_id: 101,
+            match_score: params[2],
+            status: "assigned",
+            assigned_date: new Date("2099-10-01"),
+            notes: "",
+          },
+        ],
+      };
+    }
+
+    return { rows: [] };
+  });
+
+  const res = await request(app)
+    .post("/api/matching/assign")
+    .send({ volunteerId: 101, eventId: 202 }); // notes omitted
+  expect(res.status).toBe(201);
+  expect(res.body.notes).toBe("");
+});
+
+// ========= NEW TESTS: JSON & CSV PREFERENCE PARSING =========
+
+test("GET /event/:eventId -> parses JSON string preferences", async () => {
+  pool.query.mockImplementation(async (sql, params) => {
+    const s = (sql || "").toString().toLowerCase();
+
+    if (s.includes("create table if not exists volunteer_matches")) return {};
+
+    // single event
+    if (s.includes("from events") && !s.includes("volunteer_matches")) {
+      return {
+        rows: [
+          {
+            id: 1200,
+            name: "Park Cleanup",
+            event_description: "big cleanup event",
+            location: "Houston, TX",
+            required_skills: "First Aid",
+            urgency: "low",
+            date: "2099-11-11",
+            max_volunteers: 5,
+          },
+        ],
+      };
+    }
+
+    // volunteer with preferences as JSON string
+    if (s.includes("from user_credentials uc")) {
+      return {
+        rows: [
+          {
+            id: 6000,
+            email: "json@prefs.com",
+            first_name: "Json",
+            last_name: "Prefs",
+            city: "Houston",
+            state_code: "TX",
+            preferences: '["cleanup","outdoors"]', // valid JSON string
+            completed: true,
+          },
+        ],
+      };
+    }
+
+    if (s.includes("from user_skills")) {
+      expect(params[0]).toBe(6000);
+      return { rows: [{ name: "First Aid" }] };
+    }
+
+    if (s.includes("from user_availability")) {
+      return { rows: [{ avail_date: "2099-11-11" }] };
+    }
+
+    return { rows: [] };
+  });
+
+  const res = await request(app).get("/api/matching/event/1200");
+  expect(res.status).toBe(200);
+  expect(res.body.length).toBe(1);
+  // Just ensure score is valid (preferences parsed)
+  expect(res.body[0].matchScore).toBeGreaterThanOrEqual(50);
+});
+
+test("GET /event/:eventId -> splits comma-separated preferences when JSON parse fails", async () => {
+  pool.query.mockImplementation(async (sql, params) => {
+    const s = (sql || "").toString().toLowerCase();
+
+    if (s.includes("create table if not exists volunteer_matches")) return {};
+
+    if (s.includes("from events") && !s.includes("volunteer_matches")) {
+      return {
+        rows: [
+          {
+            id: 1300,
+            name: "Beach Cleanup",
+            event_description: "cleanup at the beach",
+            location: "Houston, TX",
+            required_skills: "Teamwork",
+            urgency: "low",
+            date: "2099-12-12",
+            max_volunteers: 10,
+          },
+        ],
+      };
+    }
+
+    if (s.includes("from user_credentials uc")) {
+      return {
+        rows: [
+          {
+            id: 7000,
+            email: "csv@prefs.com",
+            first_name: "Csv",
+            last_name: "Prefs",
+            city: "Houston",
+            state_code: "TX",
+            // invalid JSON but valid CSV -> hits the catch and split(',')
+            preferences: "cleanup, kids, outdoors",
+            completed: true,
+          },
+        ],
+      };
+    }
+
+    if (s.includes("from user_skills")) {
+      expect(params[0]).toBe(7000);
+      return { rows: [{ name: "Teamwork" }] };
+    }
+
+    if (s.includes("from user_availability")) {
+      return { rows: [{ avail_date: "2099-12-12" }] };
+    }
+
+    return { rows: [] };
+  });
+
+  const res = await request(app).get("/api/matching/event/1300");
+  expect(res.status).toBe(200);
+  expect(res.body.length).toBe(1);
+  expect(res.body[0].matchScore).toBeGreaterThanOrEqual(50);
+});
