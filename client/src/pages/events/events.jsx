@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import HeaderBefore from '../../assets/header_before/header_before';
+import Header from '../../assets/header_after/header_after';
 import './events.css';
 import { api } from '../../lib/api';
 
@@ -81,7 +81,7 @@ function Events() {
   return (
     <div className="events-dashboard-page">
       <div className="events-container">
-        <HeaderBefore />
+        <Header />
         <div className="events-header">
           <h1 className="events-title" style={{ paddingLeft: '6rem' }}>
             Please sign up for events
